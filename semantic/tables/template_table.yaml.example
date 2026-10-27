@@ -1,0 +1,39 @@
+x# semantic/tables/template_table.yaml.example
+# ─────────────────────────────────────────────────────────────
+# TEMPLATE: Table Definition
+# Create one YAML file per database table in this directory:
+#   semantic/tables/<your_table_name>.yaml
+# ─────────────────────────────────────────────────────────────
+
+version: v1
+
+table: YourTableName
+schema_name: dbo
+description: >
+  Describe the business purpose of this table here.
+  Explain what each row represents and when it should be queried.
+
+columns:
+  - name: id
+    type: INT
+    IS_NULLABLE: "NO"
+    description: "Primary key identifier."
+
+  - name: name
+    type: VARCHAR(100)
+    IS_NULLABLE: "NO"
+    description: "Descriptive name or title."
+
+  - name: status
+    type: VARCHAR(50)
+    IS_NULLABLE: "NO"
+    description: "Current lifecycle status (e.g. 'active', 'inactive', 'archived')."
+
+  - name: created_at
+    type: DATETIME
+    IS_NULLABLE: "NO"
+    description: "Timestamp when the record was created."
+
+business_notes: >
+  Add any domain-specific rules here (e.g. 'always filter active status',
+  'ignore internal test records').

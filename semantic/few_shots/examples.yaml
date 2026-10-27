@@ -1,0 +1,17 @@
+# semantic/few_shots/examples.yaml
+# ─────────────────────────────────────────────────────────────
+# VERIFIED QUERY EXAMPLES (FEW-SHOT PROMPTING)
+# Add verified question -> T-SQL pairs here.
+# Adding domain-specific queries here directly trains the AI
+# on your preferred SQL patterns without fine-tuning.
+# ─────────────────────────────────────────────────────────────
+
+version: v1
+
+examples:
+  # - question: "List all active records"
+  #   sql: |
+  #     SELECT TOP 1000 id, name
+  #     FROM dbo.YourTableName
+  #     WHERE status = 'active'
+  #   tables_used: [YourTableName]

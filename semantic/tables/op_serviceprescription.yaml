@@ -1,0 +1,78 @@
+version: v1
+table: OP_ServicePrescription
+schema_name: dbo
+description: Table OP_ServicePrescription in dbo schema.
+columns:
+- name: ServicePrescriptionID
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column ServicePrescriptionID
+- name: PrescriptionGeneralInfoID
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column PrescriptionGeneralInfoID
+- name: ServiceType
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ServiceType
+- name: SpecialityID
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column SpecialityID
+- name: ServiceID
+  type: bigint
+  IS_NULLABLE: 'NO'
+  description: Column ServiceID
+- name: ServiceDescription
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ServiceDescription
+- name: Qty
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Qty
+- name: ActivityValue
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column ActivityValue
+- name: Expense
+  type: decimal
+  IS_NULLABLE: 'YES'
+  description: Column Expense
+- name: IndividualDiscount
+  type: decimal
+  IS_NULLABLE: 'YES'
+  description: Column IndividualDiscount
+- name: EnteredOn
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column EnteredOn
+- name: Enteredby
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Enteredby
+- name: InActive
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column InActive
+- name: IsSelectedForApproval
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column IsSelectedForApproval
+- name: IsNotBilled
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column IsNotBilled
+- name: Sharetoministry
+  type: bit
+  IS_NULLABLE: 'NO'
+  description: Column Sharetoministry
+- name: Starttime
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column Starttime
+- name: Endtime
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column Endtime
+business_notes: Add domain-specific notes and filter rules here.

@@ -1,0 +1,30 @@
+version: v1
+table: GM_Department
+schema_name: dbo
+description: Table GM_Department in dbo schema.
+columns:
+- name: DepartmentID
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column DepartmentID
+- name: Title
+  type: varchar
+  IS_NULLABLE: 'NO'
+  description: Column Title
+- name: Code
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Code
+- name: DepartmentTypeID
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column DepartmentTypeID
+- name: Description
+  type: varchar
+  IS_NULLABLE: 'NO'
+  description: Column Description
+- name: ShortCode
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ShortCode
+business_notes: Add domain-specific notes and filter rules here.

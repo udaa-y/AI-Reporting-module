@@ -1,0 +1,57 @@
+# semantic/joins/approved_joins.yaml
+# ─────────────────────────────────────────────────────────────
+# APPROVED JOIN PATHS
+# Pre-approved table joins linking your clinical and patient records.
+# ─────────────────────────────────────────────────────────────
+
+version: v1
+
+approved_joins:
+  - from_table: OP_PrescriptionGeneralInfo
+    to_table: OP_PatientAppointment
+    join_type: INNER JOIN
+    condition: "pgi.PatientAppointmentID = pa.PatientAppointmentID"
+    aliases: {OP_PrescriptionGeneralInfo: "pgi", OP_PatientAppointment: "pa"}
+    notes: "Connects clinical vitals and prescriptions to appointment records."
+
+  - from_table: OP_PatientAppointment
+    to_table: OP_PrescriptionGeneralInfo
+    join_type: INNER JOIN
+    condition: "pa.PatientAppointmentID = pgi.PatientAppointmentID"
+    aliases: {OP_PatientAppointment: "pa", OP_PrescriptionGeneralInfo: "pgi"}
+    notes: "Connects appointment visits to clinical vitals and prescriptions."
+
+  - from_table: OP_PrescriptionGeneralInfo
+    to_table: OP_PatientRegistration
+    join_type: INNER JOIN
+    condition: "pgi.PatientID = pr.PatientId"
+    aliases: {OP_PrescriptionGeneralInfo: "pgi", OP_PatientRegistration: "pr"}
+    notes: "Connects prescriptions to registered patient details."
+
+  - from_table: OP_PatientRegistration
+    to_table: OP_PrescriptionGeneralInfo
+    join_type: INNER JOIN
+    condition: "pr.PatientId = pgi.PatientID"
+    aliases: {OP_PatientRegistration: "pr", OP_PrescriptionGeneralInfo: "pgi"}
+    notes: "Connects patient demographics to clinical vitals."
+
+  - from_table: OP_PatientAppointment
+    to_table: OP_PatientRegistration
+    join_type: INNER JOIN
+    condition: "pa.FileNo = pr.FileNo"
+    aliases: {OP_PatientAppointment: "pa", OP_PatientRegistration: "pr"}
+    notes: "Connects appointment visits to patient registration by FileNo."
+
+  - from_table: OP_PatientRegistration
+    to_table: OP_PatientAppointment
+    join_type: INNER JOIN
+    condition: "pr.FileNo = pa.FileNo"
+    aliases: {OP_PatientRegistration: "pr", OP_PatientAppointment: "pa"}
+    notes: "Connects patient records to their appointments."
+
+  - from_table: GM_Department
+    to_table: EmployeeProfile
+    join_type: INNER JOIN
+    condition: "gd.DepartmentId = ep.DepartmentId"
+    aliases: {GM_Department: "gd", EmployeeProfile: "ep"}
+    notes: "Connects department details to employee profiles."

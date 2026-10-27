@@ -1,0 +1,14 @@
+# semantic/synonyms/vocabulary.yaml
+# ─────────────────────────────────────────────────────────────
+# BUSINESS SYNONYMS & TERMINOLOGY
+# Map natural user vocabulary to canonical column or table terms.
+# Format:
+#   <user synonym>: <canonical concept or column>
+# ─────────────────────────────────────────────────────────────
+
+version: v1
+
+mappings:
+  # Example mappings:
+  # client: customer
+  # total: count
