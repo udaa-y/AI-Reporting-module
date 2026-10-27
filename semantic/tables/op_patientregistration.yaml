@@ -1,0 +1,282 @@
+version: v1
+table: OP_PatientRegistration
+schema_name: dbo
+description: Table OP_PatientRegistration in dbo schema.
+columns:
+- name: PatientId
+  type: bigint
+  IS_NULLABLE: 'NO'
+  description: Column PatientId
+- name: FileNo
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column FileNo
+- name: Date
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column Date
+- name: FirstName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column FirstName
+- name: MiddleName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column MiddleName
+- name: LastName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column LastName
+- name: Sex
+  type: char
+  IS_NULLABLE: 'YES'
+  description: Column Sex
+- name: DOB
+  type: datetime
+  IS_NULLABLE: 'NO'
+  description: Column DOB
+- name: Address
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Address
+- name: Province
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Province
+- name: ZIPCode
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ZIPCode
+- name: Phone
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Phone
+- name: Mobile
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Mobile
+- name: Email
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Email
+- name: IqamaNo
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column IqamaNo
+- name: NationalityId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column NationalityId
+- name: IQAMADocumentPath
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column IQAMADocumentPath
+- name: PolicyDocumentPath
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column PolicyDocumentPath
+- name: Active
+  type: bit
+  IS_NULLABLE: 'NO'
+  description: Column Active
+- name: VisitStatus
+  type: char
+  IS_NULLABLE: 'YES'
+  description: Column VisitStatus
+- name: DoctorId
+  type: bigint
+  IS_NULLABLE: 'YES'
+  description: Column DoctorId
+- name: PatientAppointmentID
+  type: bigint
+  IS_NULLABLE: 'YES'
+  description: Column PatientAppointmentID
+- name: RegistrationTime
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column RegistrationTime
+- name: FileType
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column FileType
+- name: test
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column test
+- name: ReferralClinicId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column ReferralClinicId
+- name: ReferralDoctorId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column ReferralDoctorId
+- name: Photo
+  type: ntext
+  IS_NULLABLE: 'YES'
+  description: Column Photo
+- name: MaritalStatus
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column MaritalStatus
+- name: Occupation
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Occupation
+- name: WorkStatus
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column WorkStatus
+- name: FamilyID
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column FamilyID
+- name: DeActivate
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column DeActivate
+- name: ProofIdentity
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ProofIdentity
+- name: CountryPermanenResidance
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column CountryPermanenResidance
+- name: KnowAboutUsId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column KnowAboutUsId
+- name: Branch
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Branch
+- name: Patient_Class
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Patient_Class
+- name: Patient_Language
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Patient_Language
+- name: MSC_Code
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column MSC_Code
+- name: LAC_Code
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column LAC_Code
+- name: RGC_Code
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column RGC_Code
+- name: KinName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column KinName
+- name: KinContactNo
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column KinContactNo
+- name: RSC_Code
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column RSC_Code
+- name: opc_optout
+  type: char
+  IS_NULLABLE: 'YES'
+  description: Column opc_optout
+- name: opd_optdate
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column opd_optdate
+- name: kinLastName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column kinLastName
+- name: opc_mobcountrycode
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column opc_mobcountrycode
+- name: opc_kinmobcountrycode
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column opc_kinmobcountrycode
+- name: Remarks
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Remarks
+- name: Referralfield
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Referralfield
+- name: Citizenship
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Citizenship
+- name: Patienttype
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Patienttype
+- name: PassportNo
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column PassportNo
+- name: Signature
+  type: ntext
+  IS_NULLABLE: 'YES'
+  description: Column Signature
+- name: ResidentType
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ResidentType
+- name: Medtype
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Medtype
+- name: EnteredBy
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column EnteredBy
+- name: EnteredOn
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column EnteredOn
+- name: DeletedBy
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column DeletedBy
+- name: DeletedOn
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column DeletedOn
+- name: InActive
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column InActive
+- name: Status
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column Status
+- name: SendSMS
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column SendSMS
+- name: SendEmail
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column SendEmail
+- name: PatBitrixId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column PatBitrixId
+- name: Companyname
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column Companyname
+- name: PatientLocation
+  type: nvarchar
+  IS_NULLABLE: 'YES'
+  description: Column PatientLocation
+business_notes: Add domain-specific notes and filter rules here.

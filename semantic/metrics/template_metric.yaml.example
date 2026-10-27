@@ -1,0 +1,22 @@
+# semantic/metrics/template_metric.yaml.example
+# ─────────────────────────────────────────────────────────────
+# TEMPLATE: Business Metric Definition
+# Define business metrics here:
+#   semantic/metrics/<metric_name>.yaml
+# ─────────────────────────────────────────────────────────────
+
+version: v1
+
+metric: "YourMetricName"
+aliases:
+  - "alternative term 1"
+  - "alternative term 2"
+definition: >
+  Explain what this metric means in plain business language.
+calculation:
+  expression: "COUNT(YourTableName.id)"
+  filters:
+    - "YourTableName.status = 'active'"
+time_dimension: "YourTableName.created_at"
+table_dependencies:
+  - YourTableName

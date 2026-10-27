@@ -1,0 +1,160 @@
+version: v1
+table: OP_PrescriptionGeneralInfo
+schema_name: dbo
+description: Table OP_PrescriptionGeneralInfo in dbo schema.
+columns:
+- name: PrescriptionGeneralInfoID
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column PrescriptionGeneralInfoID
+- name: PatientID
+  type: bigint
+  IS_NULLABLE: 'YES'
+  description: Column PatientID
+- name: VisitID
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column VisitID
+- name: Weight
+  type: decimal
+  IS_NULLABLE: 'YES'
+  description: Column Weight
+- name: BP
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: BP reading for the patient, e.g., "120/80"
+- name: Pulse
+  type: decimal
+  IS_NULLABLE: 'YES'
+  description: Column Pulse
+- name: Temperature
+  type: decimal
+  IS_NULLABLE: 'YES'
+  description: Column Temperature
+- name: Symptoms
+  type: nvarchar
+  IS_NULLABLE: 'YES'
+  description: Column Symptoms
+- name: Illness
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Illness
+- name: Volatile
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column Volatile
+- name: EnteredBy
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column EnteredBy
+- name: EnteredOn
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column EnteredOn
+- name: DiseaseType
+  type: char
+  IS_NULLABLE: 'YES'
+  description: Column DiseaseType
+- name: PatientSymptoms
+  type: ntext
+  IS_NULLABLE: 'YES'
+  description: Column PatientSymptoms
+- name: Duration1
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Duration1
+- name: Duration2
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Duration2
+- name: Signs
+  type: ntext
+  IS_NULLABLE: 'YES'
+  description: Column Signs
+- name: Complaints
+  type: ntext
+  IS_NULLABLE: 'YES'
+  description: Column Complaints
+- name: Remarks
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Remarks
+- name: ClinicalNotes
+  type: nvarchar
+  IS_NULLABLE: 'YES'
+  description: Column ClinicalNotes
+- name: MedicalRemarks
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column MedicalRemarks
+- name: erxReferenceNo
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column erxReferenceNo
+- name: CardNo
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column CardNo
+- name: CompanyId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column CompanyId
+- name: ServiceDiscount
+  type: decimal
+  IS_NULLABLE: 'YES'
+  description: Column ServiceDiscount
+- name: ServiceDiscountAmt
+  type: decimal
+  IS_NULLABLE: 'YES'
+  description: Column ServiceDiscountAmt
+- name: ReferenceNotes
+  type: ntext
+  IS_NULLABLE: 'YES'
+  description: Column ReferenceNotes
+- name: SickLeaveNotes
+  type: ntext
+  IS_NULLABLE: 'YES'
+  description: Column SickLeaveNotes
+- name: PatientAppointmentID
+  type: bigint
+  IS_NULLABLE: 'YES'
+  description: Column PatientAppointmentID
+- name: PatientPolicyId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column PatientPolicyId
+- name: History
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column History
+- name: ClinicalFinding
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ClinicalFinding
+- name: PlanCare
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column PlanCare
+- name: AdviceGoal
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column AdviceGoal
+- name: InvestigationAdvice
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column InvestigationAdvice
+- name: IntraOral
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column IntraOral
+- name: ExtraOral
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ExtraOral
+- name: Followupconsultation
+  type: bit
+  IS_NULLABLE: 'NO'
+  description: Column Followupconsultation
+business_notes: >
+  The BP column stores the Blood Pressure reading for the patient, e.g. 120/80.
+  Contains clinical vitals such as Pulse, Temperature, Weight, and Symptoms.

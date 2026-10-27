@@ -1,0 +1,286 @@
+version: v1
+table: OP_PatientAppointment
+schema_name: dbo
+description: Table OP_PatientAppointment in dbo schema.
+columns:
+- name: PatientAppointmentID
+  type: bigint
+  IS_NULLABLE: 'NO'
+  description: Column PatientAppointmentID
+- name: VisitDate
+  type: datetime
+  IS_NULLABLE: 'NO'
+  description: Column VisitDate
+- name: DoctorId
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column DoctorId
+- name: TokenNo
+  type: varchar
+  IS_NULLABLE: 'NO'
+  description: Column TokenNo
+- name: FileNo
+  type: varchar
+  IS_NULLABLE: 'NO'
+  description: Column FileNo
+- name: Date
+  type: datetime
+  IS_NULLABLE: 'NO'
+  description: Column Date
+- name: AppointmentNo
+  type: varchar
+  IS_NULLABLE: 'NO'
+  description: Column AppointmentNo
+- name: FirstName
+  type: varchar
+  IS_NULLABLE: 'NO'
+  description: Column FirstName
+- name: MiddleName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column MiddleName
+- name: LastName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column LastName
+- name: DOB
+  type: datetime
+  IS_NULLABLE: 'NO'
+  description: Column DOB
+- name: Sex
+  type: char
+  IS_NULLABLE: 'NO'
+  description: Column Sex
+- name: Address
+  type: varchar
+  IS_NULLABLE: 'NO'
+  description: Column Address
+- name: Province
+  type: varchar
+  IS_NULLABLE: 'NO'
+  description: Column Province
+- name: ZIPCode
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ZIPCode
+- name: NationalityId
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column NationalityId
+- name: CivilId
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column CivilId
+- name: Phone
+  type: varchar
+  IS_NULLABLE: 'NO'
+  description: Column Phone
+- name: Mobile
+  type: varchar
+  IS_NULLABLE: 'NO'
+  description: Column Mobile
+- name: Email
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Email
+- name: Active
+  type: bit
+  IS_NULLABLE: 'NO'
+  description: Column Active
+- name: IsConsulted
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column IsConsulted
+- name: VisitStatus
+  type: char
+  IS_NULLABLE: 'YES'
+  description: Column VisitStatus
+- name: eventstart
+  type: datetime
+  IS_NULLABLE: 'NO'
+  description: Column eventstart
+- name: eventend
+  type: datetime
+  IS_NULLABLE: 'NO'
+  description: Column eventend
+- name: PatientType
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column PatientType
+- name: WalkInTime
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column WalkInTime
+- name: Reason
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Reason
+- name: ReferralClinicId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column ReferralClinicId
+- name: ReferralDoctorId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column ReferralDoctorId
+- name: ConsentPath
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ConsentPath
+- name: InActive
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column InActive
+- name: SessionCode
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column SessionCode
+- name: ServiceTaken
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column ServiceTaken
+- name: SessionClose
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column SessionClose
+- name: EnteredBy
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column EnteredBy
+- name: EnteredOn
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column EnteredOn
+- name: CancelledBy
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column CancelledBy
+- name: CancelledOn
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column CancelledOn
+- name: SessionID
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column SessionID
+- name: UpdatedBy
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column UpdatedBy
+- name: UpdatedOn
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column UpdatedOn
+- name: TreatmentDelete
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column TreatmentDelete
+- name: Reference
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Reference
+- name: DeActivate
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column DeActivate
+- name: CancelReason
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column CancelReason
+- name: BranchCode
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column BranchCode
+- name: LeadId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column LeadId
+- name: TechnologistId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column TechnologistId
+- name: BeforeUpdating
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column BeforeUpdating
+- name: IS_LIS_Updated
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column IS_LIS_Updated
+- name: LIS_VisitID
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column LIS_VisitID
+- name: LIS_Status
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column LIS_Status
+- name: LIS_ReportURL
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column LIS_ReportURL
+- name: TechnologistStart
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column TechnologistStart
+- name: TechnologistEnd
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column TechnologistEnd
+- name: WitnessID
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column WitnessID
+- name: okadoclink
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column okadoclink
+- name: Is_SendTo_MotherLab
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column Is_SendTo_MotherLab
+- name: LIS_UID
+  type: uniqueidentifier
+  IS_NULLABLE: 'YES'
+  description: Column LIS_UID
+- name: Is_SendTo_Nabidh
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column Is_SendTo_Nabidh
+- name: appldate
+  type: datetime
+  IS_NULLABLE: 'YES'
+  description: Column appldate
+- name: Parentappointmentid
+  type: bigint
+  IS_NULLABLE: 'NO'
+  description: Column Parentappointmentid
+- name: parenttype
+  type: varchar
+  IS_NULLABLE: 'NO'
+  description: Column parenttype
+- name: IsTransferCreation
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column IsTransferCreation
+- name: IsAddedToBetrix
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column IsAddedToBetrix
+- name: PatBitrixDealId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column PatBitrixDealId
+- name: PatBitrixID
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column PatBitrixID
+- name: Salesstaff
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column Salesstaff
+- name: Diseasetype
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Diseasetype
+business_notes: Add domain-specific notes and filter rules here.

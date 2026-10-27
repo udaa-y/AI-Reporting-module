@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Analytics AI Query Platform</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px 40px;
+      line-height: 1.5;
+      color: #222;
+    }
+    h1, h2, h3 {
+      color: #111;
+    }
+    textarea {
+      width: 100%;
+      max-width: 800px;
+      font-family: inherit;
+      font-size: 15px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      margin: 4px 2px;
+    }
+    .btn-submit {
+      background-color: #0066cc;
+      color: #fff;
+      border: 1px solid #0052a3;
+      font-weight: bold;
+    }
+    .btn-option {
+      background-color: #f0f0f0;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      padding: 8px 14px;
+      display: inline-block;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    .btn-option:hover {
+      background-color: #e0e8f5;
+      border-color: #0066cc;
+    }
+    .box {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-top: 15px;
+      max-width: 1000px;
+      background: #fafafa;
+    }
+    .clarification-box {
+      border: 2px solid #e6a800;
+      background-color: #fffdf5;
+    }
+    .error-box {
+      border: 2px solid #cc0000;
+      background-color: #fff55;
+      color: #990000;
+    }
+    pre {
+      background: #eee;
+      padding: 10px;
+      overflow-x: auto;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      border: 1px solid #ddd;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 6px 10px;
+      text-align: left;
+    }
+    th {
+      background: #e6e6e6;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    .summary-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: #004085;
+      background: #e8f0fe;
+      padding: 12px;
+      border-left: 4px solid #0066cc;
+    }
+    .meta-info {
+      color: #666;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+    #loading {
+      display: none;
+      font-weight: bold;
+      color: #0066cc;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Analytics AI Query Platform</h1>
+  <p>Ask business questions in natural language. The system queries your live database, handles ambiguity, and displays verified results.</p>
+
+  <!-- Query Input Section -->
+  <div>
+    <label for="queryInput"><strong>Enter your question:</strong></label><br>
+    <textarea id="queryInput" rows="3" placeholder="e.g. whats the BP (blood pressure) for the patient named Shukkoor. give me the appointment dates and BP values"></textarea>
+    <br>
+    <button class="btn-submit" id="btnSubmit" onclick="runQuery()">Submit Query</button>
+    <button type="button" onclick="resetSession()">New Session</button>
+    <span class="meta-info" id="sessionLabel"></span>
+  </div>
+
+  <div id="loading">Processing query through AI agent and database... please wait.</div>
+
+  <!-- Clarification Section (shown when query is ambiguous) -->
+  <div id="clarificationSection" class="box clarification-box" style="display: none;">
+    <h3>Clarification Needed</h3>
+    <p id="clarificationQuestion" style="font-size: 15px; font-weight: bold;"></p>
+    <div id="clarificationOptions"></div>
+    <div style="margin-top: 12px;">
+      <label for="customClarifyInput">Or type a specific response:</label><br>
+      <input type="text" id="customClarifyInput" style="width: 60%; padding: 6px;" placeholder="Type your answer here...">
+      <button onclick="submitCustomClarification()">Send Answer</button>
+    </div>
+  </div>
+
+  <!-- Error Section -->
+  <div id="errorSection" class="box error-box" style="display: none;">
+    <h3>Error</h3>
+    <p id="errorMessage"></p>
+    <div id="errorDetails" class="meta-info"></div>
+  </div>
+
+  <!-- Results Section -->
+  <div id="resultsSection" style="display: none;">
+    
+    <!-- AI Summary -->
+    <div class="box">
+      <h3>AI Summary</h3>
+      <div id="summaryContent" class="summary-text"></div>
+      <div class="meta-info" id="statsContent"></div>
+    </div>
+
+    <!-- Generated SQL (Code Transparency) -->
+    <div class="box">
+      <h3>Generated T-SQL Query</h3>
+      <pre><code id="sqlContent"></code></pre>
+    </div>
+
+    <!-- Tabular Data Results -->
+    <div class="box">
+      <h3>Query Results (<span id="rowCountLabel">0</span> rows)</h3>
+      <div style="overflow-x: auto;">
+        <table id="dataTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Generate or retrieve session ID
+    let currentSessionId = localStorage.getItem("ai_session_id") || "sess-" + Math.random().toString(36).substring(2, 10);
+    localStorage.setItem("ai_session_id", currentSessionId);
+    updateSessionLabel();
+
+    function updateSessionLabel() {
+      document.getElementById("sessionLabel").innerText = "Session ID: " + currentSessionId;
+    }
+
+    function resetSession() {
+      currentSessionId = "sess-" + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem("ai_session_id", currentSessionId);
+      updateSessionLabel();
+      document.getElementById("queryInput").value = "";
+      hideAllOutputs();
+      alert("Started new session: " + currentSessionId);
+    }
+
+    function hideAllOutputs() {
+      document.getElementById("clarificationSection").style.display = "none";
+      document.getElementById("errorSection").style.display = "none";
+      document.getElementById("resultsSection").style.display = "none";
+      document.getElementById("loading").style.display = "none";
+    }
+
+    // Submit natural language query
+    async function runQuery() {
+      const query = document.getElementById("queryInput").value.trim();
+      if (!query) {
+        alert("Please enter a query.");
+        return;
+      }
+
+      hideAllOutputs();
+      document.getElementById("loading").style.display = "block";
+      document.getElementById("btnSubmit").disabled = true;
+
+      try {
+        const response = await fetch("/query", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: query,
+            session_id: currentSessionId
+          })
+        });
+
+        const data = await response.json();
+        handleResponse(data);
+      } catch (err) {
+        showError("Network/Server Error: " + err.message);
+      } finally {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("btnSubmit").disabled = false;
+      }
+    }
+
+    // Submit clarification answer back to /query/clarify
+    async function sendClarification(answer) {
+      if (!answer) return;
+
+      hideAllOutputs();
+      document.getElementById("loading").style.display = "block";
+
+      try {
+        const response = await fetch("/query/clarify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: currentSessionId,
+            answer: answer
+          })
+        });
+
+        const data = await response.json();
+        handleResponse(data);
+      } catch (err) {
+        showError("Clarification Error: " + err.message);
+      } finally {
+        document.getElementById("loading").style.display = "none";
+      }
+    }
+
+    function submitCustomClarification() {
+      const val = document.getElementById("customClarifyInput").value.trim();
+      if (val) {
+        sendClarification(val);
+      }
+    }
+
+    // Route response based on status
+    function handleResponse(data) {
+      if (data.session_id) {
+        currentSessionId = data.session_id;
+        updateSessionLabel();
+      }
+      if (data.status === "clarification_needed") {
+        showClarification(data);
+      } else if (data.status === "success") {
+        showResults(data);
+      } else {
+        showError(data.message || "An error occurred during query execution.", data);
+      }
+    }
+
+    // Display clarification options
+    function showClarification(data) {
+      document.getElementById("clarificationSection").style.display = "block";
+      document.getElementById("clarificationQuestion").innerText = data.question || "Please clarify your request:";
+
+      const optionsDiv = document.getElementById("clarificationOptions");
+      optionsDiv.innerHTML = "";
+
+      const options = data.options || [];
+      if (options.length > 0) {
+        options.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "btn-option";
+          btn.innerText = opt;
+          btn.onclick = () => sendClarification(opt);
+          optionsDiv.appendChild(btn);
+        });
+      } else {
+        optionsDiv.innerHTML = "<em>No predefined choices provided. Please type your clarification below.</em>";
+      }
+    }
+
+    // Display results table & summary
+    function showResults(data) {
+      document.getElementById("resultsSection").style.display = "block";
+
+      // Summary
+      document.getElementById("summaryContent").innerText = data.summary || "No summary available.";
+      document.getElementById("statsContent").innerText = 
+        `Execution time: ${data.execution_time_ms || 0}ms | Total time: ${data.total_processing_time_ms || 0}ms | SQL attempts: ${data.sql_attempts || 1}`;
+
+      // SQL
+      document.getElementById("sqlContent").innerText = data.generated_sql || "-- No SQL statement generated";
+
+      // Table
+      const columns = data.columns || [];
+      const rows = data.data || [];
+      document.getElementById("rowCountLabel").innerText = data.row_count || rows.length;
+
+      const thead = document.getElementById("tableHead");
+      const tbody = document.getElementById("tableBody");
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+
+      if (columns.length > 0) {
+        const headerRow = document.createElement("tr");
+        columns.forEach(col => {
+          const th = document.createElement("th");
+          th.innerText = col;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+      }
+
+      if (rows.length > 0) {
+        rows.forEach(row => {
+          const tr = document.createElement("tr");
+          columns.forEach(col => {
+            const td = document.createElement("td");
+            const val = row[col];
+            td.innerText = (val !== null && val !== undefined) ? val : "NULL";
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+      } else {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = columns.length || 1;
+        td.innerText = "No records returned.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
+    }
+
+    function showError(msg, details) {
+      document.getElementById("errorSection").style.display = "block";
+      document.getElementById("errorMessage").innerText = msg;
+      const detailsDiv = document.getElementById("errorDetails");
+      if (details && details.last_error) {
+        detailsDiv.innerText = "Detail: " + details.last_error;
+      } else {
+        detailsDiv.innerText = "";
+      }
+    }
+
+    // Allow Ctrl+Enter to submit
+    document.getElementById("queryInput").addEventListener("keydown", function(e) {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        runQuery();
+      }
+    });
+  </script>
+
+</body>
+</html>

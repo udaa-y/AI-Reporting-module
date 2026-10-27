@@ -1,0 +1,18 @@
+tables:
+  - name: OP_PrescriptionGeneralInfo
+    description: "Contains clinical vitals including BP (Blood Pressure), pulse, temperature, patient symptoms, and general prescription details."
+
+  - name: OP_PatientAppointment
+    description: "Contains patient appointment records, doctor schedules, appointment numbers, FileNo, and appointment visit dates."
+
+  - name: OP_PatientRegistration
+    description: "Contains patient demographic records, patient names (FirstName, LastName), DOB, gender, phone, and unique PatientId."
+
+  - name: OP_ServicePrescription
+    description: "Contains prescribed medical services, lab tests, and procedures."
+
+  - name : EmployeeProfile
+    description: "Contains employee details including EmployeeId, FirstName, LastName, and DepartmentId. It also contains Title column which has their designation. 'Dr.' if its a doctor"
+
+  - name: GM_Department
+    description: "Contains department details including DepartmentId, Title, and Description."

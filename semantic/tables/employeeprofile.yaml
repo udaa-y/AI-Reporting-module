@@ -1,0 +1,166 @@
+version: v1
+table: EmployeeProfile
+schema_name: dbo
+description: Table EmployeeProfile in dbo schema.
+columns:
+- name: EmployeeId
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column EmployeeId
+- name: Type
+  type: char
+  IS_NULLABLE: 'YES'
+  description: Column Type
+- name: Title
+  type: nvarchar
+  IS_NULLABLE: 'YES'
+  description: Column Title
+- name: FirstName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column FirstName
+- name: Qualification
+  type: nvarchar
+  IS_NULLABLE: 'YES'
+  description: Column Qualification
+- name: Validity
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Validity
+- name: NumberofVisit
+  type: numeric
+  IS_NULLABLE: 'YES'
+  description: Column NumberofVisit
+- name: ConsultationFee
+  type: numeric
+  IS_NULLABLE: 'YES'
+  description: Column ConsultationFee
+- name: DepartmentId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column DepartmentId
+- name: DesignationId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column DesignationId
+- name: BuildingNumber
+  type: nvarchar
+  IS_NULLABLE: 'YES'
+  description: Column BuildingNumber
+- name: Street
+  type: nvarchar
+  IS_NULLABLE: 'YES'
+  description: Column Street
+- name: City
+  type: nvarchar
+  IS_NULLABLE: 'YES'
+  description: Column City
+- name: Province
+  type: nvarchar
+  IS_NULLABLE: 'YES'
+  description: Column Province
+- name: ZIP
+  type: nvarchar
+  IS_NULLABLE: 'YES'
+  description: Column ZIP
+- name: MiddleName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column MiddleName
+- name: LastName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column LastName
+- name: SpecialityId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column SpecialityId
+- name: ConsultationId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column ConsultationId
+- name: Servicecharge
+  type: numeric
+  IS_NULLABLE: 'YES'
+  description: Column Servicecharge
+- name: Target
+  type: numeric
+  IS_NULLABLE: 'YES'
+  description: Column Target
+- name: UpdationLimit
+  type: bigint
+  IS_NULLABLE: 'YES'
+  description: Column UpdationLimit
+- name: TimeSlot
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column TimeSlot
+- name: EclaimDoctorId
+  type: nvarchar
+  IS_NULLABLE: 'YES'
+  description: Column EclaimDoctorId
+- name: DoctorType
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column DoctorType
+- name: ClinicianUsername
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ClinicianUsername
+- name: ClinicianPassword
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ClinicianPassword
+- name: SignaturePath
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column SignaturePath
+- name: RoomNo
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column RoomNo
+- name: InActive
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column InActive
+- name: Comission
+  type: decimal
+  IS_NULLABLE: 'YES'
+  description: Column Comission
+- name: MDTSpecialityId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column MDTSpecialityId
+- name: Email
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Email
+- name: ProfileImg
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ProfileImg
+- name: Insurancestatus
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column Insurancestatus
+- name: bitrixID
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column bitrixID
+- name: Salary
+  type: decimal
+  IS_NULLABLE: 'YES'
+  description: Column Salary
+- name: PrintOrder
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column PrintOrder
+- name: MfaAuth
+  type: bit
+  IS_NULLABLE: 'YES'
+  description: Column MfaAuth
+- name: Bgcolor
+  type: varchar
+  IS_NULLABLE: 'NO'
+  description: Column Bgcolor
+business_notes: Add domain-specific notes and filter rules here.
