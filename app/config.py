@@ -81,6 +81,12 @@ class Settings(BaseSettings):
     top_k_retrieval: int = 30
     top_k_after_rerank: int = 8
 
+    # ── Insight / Summary Output Controls ────────────────────────
+    summary_max_output_tokens: int = 700    # Max tokens the insight LLM may write
+    summary_max_input_rows: int = 40        # Max result rows shown to the insight LLM
+    qa_max_input_rows: int = 60             # Max result rows shown to the follow-up Q&A LLM
+    summary_model: str = ""                 # Empty = reuse LLM_INTENT_MODEL
+
     # ── Agent ────────────────────────────────────────────────────
     max_sql_retries: int = 3
     max_result_rows: int = 1000

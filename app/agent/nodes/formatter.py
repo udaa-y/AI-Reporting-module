@@ -3,8 +3,8 @@ app/agent/nodes/formatter.py
 ──────────────────────────────
 Node 8 — Response Formatter
 
-Assembles the final structured response payload and generates
-a plain-English natural language summary of the results using the LLM.
+Assembles the final structured response payload and generates a business
+insight analysis of the results (see app/agent/insights.py).
 
 This is the last node in the happy path. The response is designed to
 be transparent — it always includes the generated SQL so the user
@@ -13,56 +13,12 @@ be transparent — it always includes the generated SQL so the user
 
 import logging
 
-from langchain_core.messages import SystemMessage, HumanMessage
-from langchain_openai import ChatOpenAI
-
+from app.agent.insights import fallback_analysis, generate_insight
 from app.agent.state import QueryAgentState
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
-
-SUMMARY_SYSTEM_PROMPT = """\
-You are a concise business analyst. Given a user's question and a data table
-of query results, write a 2–4 sentence plain-English summary of the key findings.
-Focus on the most important numbers, trends, or comparisons.
-Be direct and specific. Do not include technical SQL details.
-"""
-
-SUMMARY_USER_PROMPT = """\
-User question: "{query}"
-
-Query results ({row_count} rows):
-{sample_data}
-
-Write a concise plain-English summary of these results.
-"""
-
-
-def _get_summary_llm() -> ChatOpenAI:
-    kwargs = {
-        "model": settings.llm_intent_model,
-        "temperature": 0.3,
-        "api_key": settings.openai_api_key,
-        "max_tokens": 200,
-    }
-    if settings.clean_openai_base_url:
-        kwargs["base_url"] = settings.clean_openai_base_url
-    return ChatOpenAI(**kwargs)
-
-
-def _format_sample_for_summary(columns: list, rows: list, max_rows: int = 10) -> str:
-    """Format the first N rows as a readable table for the summary LLM."""
-    if not rows:
-        return "No results returned."
-    sample = rows[:max_rows]
-    header = " | ".join(str(c) for c in columns)
-    separator = "-" * len(header)
-    body = "\n".join(
-        " | ".join(str(row.get(c, "")) for c in columns)
-        for row in sample
-    )
-    return f"{header}\n{separator}\n{body}"
 
 
 def formatter_node(state: QueryAgentState) -> QueryAgentState:
@@ -79,31 +35,26 @@ def formatter_node(state: QueryAgentState) -> QueryAgentState:
     row_count = exec_result.get("row_count", 0)
     exec_time = exec_result.get("execution_time_ms", 0)
 
-    query_display = state.get("enriched_query") or state.get("raw_query", "")
     generated_sql = state.get("generated_sql", "")
     clarifications = state.get("clarifications_made", [])
 
     logger.info("[Node 8] Formatting response — row_count=%d", row_count)
 
-    # ── Generate NL Summary ────────────────────────────────────────────────────
-    nl_summary = ""
+    # ── Generate business insight ──────────────────────────────────────────────
+    summary_error = None
     if rows:
         try:
-            sample_str = _format_sample_for_summary(columns, rows)
-            llm = _get_summary_llm()
-            resp = llm.invoke([
-                SystemMessage(content=SUMMARY_SYSTEM_PROMPT),
-                HumanMessage(content=SUMMARY_USER_PROMPT.format(
-                    query=state.get("raw_query", ""),
-                    row_count=row_count,
-                    sample_data=sample_str,
-                )),
-            ])
-            nl_summary = resp.content.strip()
-            logger.info("[Node 8] NL summary generated.")
-        except Exception as exc:
-            logger.warning("[Node 8] Summary generation failed: %s", exc)
-            nl_summary = f"Query returned {row_count} row(s)."
+            nl_summary, summary_error = generate_insight(
+                state.get("raw_query", ""), columns, rows, row_count
+            )
+        except Exception as exc:  # never let insight generation break the response
+            nl_summary, summary_error = "", str(exc)
+        if not nl_summary:
+            logger.warning("[Node 8] Insight generation failed: %s", summary_error)
+            try:
+                nl_summary = fallback_analysis(columns, rows, row_count, summary_error)
+            except Exception:
+                nl_summary = f"Query returned {row_count} row(s)."
     else:
         nl_summary = "The query returned no results."
 
@@ -120,6 +71,7 @@ def formatter_node(state: QueryAgentState) -> QueryAgentState:
         "data": rows,
         "row_count": row_count,
         "summary": nl_summary,
+        "summary_error": summary_error,
         "execution_time_ms": exec_time,
         "sql_attempts": state.get("sql_attempt_count", 1),
         "data_freshness": "live",

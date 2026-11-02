@@ -1,0 +1,11 @@
+[33m3f748ba[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Merge branch 'main' of https://github.com/udaa-y/AI-Reporting-module
+[33m043343f[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Delete .env.example
+[33mf280f94[m Delete .env
+[33m2a34122[m Remove environment secrets
+[33m7a52ddb[m Merge branch 'main' of https://github.com/udaa-y/AI-Reporting-module
+[33m60dc2ed[m .
+[33m3543e3f[m Remove OpenAI API key from .env file
+[33mbc47720[m Merge branch 'main' of https://github.com/udaa-y/AI-Reporting-module
+[33m7f08c2d[m added new table yaml files
+[33mc1c4060[m Add .env to gitignore
+[33m3ebe295[m Initial commit

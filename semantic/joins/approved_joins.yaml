@@ -7,51 +7,39 @@
 version: v1
 
 approved_joins:
-  - from_table: OP_PrescriptionGeneralInfo
-    to_table: OP_PatientAppointment
+  - from_table: Patient
+    to_table: Appointment
     join_type: INNER JOIN
-    condition: "pgi.PatientAppointmentID = pa.PatientAppointmentID"
-    aliases: {OP_PrescriptionGeneralInfo: "pgi", OP_PatientAppointment: "pa"}
-    notes: "Connects clinical vitals and prescriptions to appointment records."
+    condition: "p.Id = a.PatientId"
+    aliases: {Patient: "p", Appointment: "a"}
+    notes: "Connects patient demographics to their appointment records."
 
-  - from_table: OP_PatientAppointment
-    to_table: OP_PrescriptionGeneralInfo
+  - from_table: Patient
+    to_table: Employee
     join_type: INNER JOIN
-    condition: "pa.PatientAppointmentID = pgi.PatientAppointmentID"
-    aliases: {OP_PatientAppointment: "pa", OP_PrescriptionGeneralInfo: "pgi"}
-    notes: "Connects appointment visits to clinical vitals and prescriptions."
+    condition: "p.DoctorId = e.Id"
+    aliases: {Patient: "p", Employee: "e"}
+    notes: "Connects patient records to their assigned doctors."
 
-  - from_table: OP_PrescriptionGeneralInfo
-    to_table: OP_PatientRegistration
-    join_type: INNER JOIN
-    condition: "pgi.PatientID = pr.PatientId"
-    aliases: {OP_PrescriptionGeneralInfo: "pgi", OP_PatientRegistration: "pr"}
-    notes: "Connects prescriptions to registered patient details."
+  - from_table: Appointment
+    to_table: Complaints
+    join_type: LEFT JOIN
+    condition: "a.Id = c.Appointment"
+    aliases: {Appointment: "a", Complaints: "c"}
+    notes: "Connects appointment visits to patient complaints."
 
-  - from_table: OP_PatientRegistration
-    to_table: OP_PrescriptionGeneralInfo
-    join_type: INNER JOIN
-    condition: "pr.PatientId = pgi.PatientID"
-    aliases: {OP_PatientRegistration: "pr", OP_PrescriptionGeneralInfo: "pgi"}
-    notes: "Connects patient demographics to clinical vitals."
+  - from_table: Appointment
+    to_table: ServicePrescription
+    join_type: LEFT JOIN
+    condition: "a.Id = sr.Appointment"
+    aliases: {ServicePrescription: "sr", Appointment: "a"}
+    notes: "Connects appointment visits to service prescriptions. Use this connection to get the appointment wise service prescription details"
 
-  - from_table: OP_PatientAppointment
-    to_table: OP_PatientRegistration
-    join_type: INNER JOIN
-    condition: "pa.FileNo = pr.FileNo"
-    aliases: {OP_PatientAppointment: "pa", OP_PatientRegistration: "pr"}
-    notes: "Connects appointment visits to patient registration by FileNo."
+  - from_table: Appointment 
+    to_table: MedicinePrescription
+    join_type: LEFT JOIN
+    condition: "a.Id = mp.Appointment"
+    aliases: {MedicinePrescription: "mp", Appointment: "a"}
+    notes: "Connects appointment visits to medicine prescriptions."
 
-  - from_table: OP_PatientRegistration
-    to_table: OP_PatientAppointment
-    join_type: INNER JOIN
-    condition: "pr.FileNo = pa.FileNo"
-    aliases: {OP_PatientRegistration: "pr", OP_PatientAppointment: "pa"}
-    notes: "Connects patient records to their appointments."
-
-  - from_table: GM_Department
-    to_table: EmployeeProfile
-    join_type: INNER JOIN
-    condition: "gd.DepartmentId = ep.DepartmentId"
-    aliases: {GM_Department: "gd", EmployeeProfile: "ep"}
-    notes: "Connects department details to employee profiles."
+  

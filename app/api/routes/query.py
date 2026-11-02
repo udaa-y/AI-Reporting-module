@@ -209,3 +209,63 @@ async def resume_with_clarification(req: ClarifyRequest):
     except Exception as exc:
         logger.exception("[API] Error resuming query: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Follow-up Q&A over already-retrieved results ───────────────────────────────
+
+class AskDataRequest(BaseModel):
+    session_id: str = Field(..., description="Session ID of the query whose results you want to ask about")
+    question: str = Field(..., min_length=3, description="Follow-up question about the result data")
+    user_id: str = Field(default="anonymous")
+
+
+@router.post("/ask-data")
+def ask_about_results(req: AskDataRequest):
+    """
+    Ask a follow-up question about the LAST result set of this session.
+
+    No new SQL is run: the answer is produced from the rows already retrieved
+    plus an exact pre-computed profile (totals, averages, shares, trends).
+    """
+    from app.agent.insights import answer_data_question
+
+    graph = get_graph()
+    config = _thread_config(req.session_id, req.user_id)
+    start = time.perf_counter()
+
+    try:
+        snapshot = graph.get_state(config)
+        values = (snapshot.values if snapshot else None) or {}
+        exec_result = values.get("execution_result") or {}
+        columns = exec_result.get("columns", [])
+        rows = exec_result.get("rows", [])
+
+        if not rows:
+            return JSONResponse({
+                "status": "error",
+                "message": "No result data found for this session. Run a query first, then ask about its results.",
+            })
+
+        answer, err = answer_data_question(
+            req.question,
+            values.get("raw_query", ""),
+            columns,
+            rows,
+            exec_result.get("row_count", len(rows)),
+        )
+        if not answer:
+            return JSONResponse({
+                "status": "error",
+                "message": f"Could not generate an answer: {(err or 'unknown error')[:300]}",
+            })
+
+        return JSONResponse({
+            "status": "success",
+            "question": req.question,
+            "answer": answer,
+            "processing_time_ms": round((time.perf_counter() - start) * 1000),
+        })
+
+    except Exception as exc:
+        logger.exception("[API] Error answering data question: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))

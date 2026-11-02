@@ -149,7 +149,7 @@
     
     <!-- AI Summary -->
     <div class="box">
-      <h3>AI Summary</h3>
+      <h3>AI Business Analysis</h3>
       <div id="summaryContent" class="summary-text"></div>
       <div class="meta-info" id="statsContent"></div>
     </div>
@@ -158,6 +158,17 @@
     <div class="box">
       <h3>Generated T-SQL Query</h3>
       <pre><code id="sqlContent"></code></pre>
+    </div>
+
+    <!-- Ask questions about the retrieved data -->
+    <div class="box">
+      <h3>Ask about these results</h3>
+      <p class="meta-info" style="display:block;color:#666;font-weight:normal;margin:0 0 6px 0;">
+        Ask follow-ups on the data above (e.g. "which service earned the most?", "average cost per patient?"). No new database query is run.
+      </p>
+      <input type="text" id="askInput" style="width: 70%; padding: 6px;" placeholder="Type a question about the result data...">
+      <button onclick="askAboutData()" id="btnAsk">Ask</button>
+      <div id="askAnswer" class="summary-text" style="display:none; margin-top:10px; white-space: pre-wrap;"></div>
     </div>
 
     <!-- Tabular Data Results -->
@@ -301,12 +312,50 @@
       }
     }
 
+    function escapeBold(text) {
+      const safe = (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      return safe.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+    }
+
+    // Follow-up question over the already-retrieved result data
+    async function askAboutData() {
+      const q = document.getElementById("askInput").value.trim();
+      if (!q) return;
+      const out = document.getElementById("askAnswer");
+      out.style.display = "block";
+      out.innerText = "Analysing the result data...";
+      document.getElementById("btnAsk").disabled = true;
+      try {
+        const response = await fetch("/query/ask-data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: currentSessionId, question: q })
+        });
+        const data = await response.json();
+        if (data.status === "success") {
+          out.innerHTML = escapeBold(data.answer);
+        } else {
+          out.innerText = data.message || data.detail || "Could not answer the question.";
+        }
+      } catch (err) {
+        out.innerText = "Error: " + err.message;
+      } finally {
+        document.getElementById("btnAsk").disabled = false;
+      }
+    }
+
     // Display results table & summary
     function showResults(data) {
+      document.getElementById("askAnswer").style.display = "none";
+      document.getElementById("askInput").value = "";
       document.getElementById("resultsSection").style.display = "block";
 
       // Summary
-      document.getElementById("summaryContent").innerText = data.summary || "No summary available.";
+      const summaryEl = document.getElementById("summaryContent");
+      summaryEl.style.whiteSpace = "pre-wrap";
+      const safe = (data.summary || "No summary available.")
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      summaryEl.innerHTML = safe.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
       document.getElementById("statsContent").innerText = 
         `Execution time: ${data.execution_time_ms || 0}ms | Total time: ${data.total_processing_time_ms || 0}ms | SQL attempts: ${data.sql_attempts || 1}`;
 
