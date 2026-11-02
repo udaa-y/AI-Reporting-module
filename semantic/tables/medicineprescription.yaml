@@ -1,0 +1,50 @@
+version: v1
+table: MedicinePrescription
+schema_name: dbo
+description: Table MedicinePrescription in dbo schema.
+columns:
+- name: Id
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column Id
+- name: MedicineCode
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column MedicineCode
+- name: MedicineName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column MedicineName
+- name: MedicineType
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column MedicineType
+- name: Quantity
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Quantity
+- name: UseType
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column UseType
+- name: Facility
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Facility
+- name: Status
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Status
+- name: Manufacturer
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Manufacturer
+- name: Appointment
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Appointment
+- name: TPS_Id
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column TPS_Id
+business_notes: Add domain-specific notes and filter rules here.

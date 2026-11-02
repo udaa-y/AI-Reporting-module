@@ -77,7 +77,7 @@ class Settings(BaseSettings):
     # ── Semantic Layer ───────────────────────────────────────────
     semantic_yaml_dir: str = "./semantic"
     included_tables: str = ""         # Comma-separated list of tables to restrict to (e.g. "Table1,Table2")
-    max_tables_in_context: int = 12
+    max_tables_in_context: int = 3
     top_k_retrieval: int = 30
     top_k_after_rerank: int = 8
 

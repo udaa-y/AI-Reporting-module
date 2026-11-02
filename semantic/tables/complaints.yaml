@@ -1,0 +1,22 @@
+version: v1
+table: Complaints
+schema_name: dbo
+description: Table Complaints in dbo schema.
+columns:
+- name: Id
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column Id
+- name: Complaint
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Complaint
+- name: Appointment
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Appointment
+- name: TPS_Id
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column TPS_Id
+business_notes: Add domain-specific notes and filter rules here.

@@ -90,36 +90,56 @@ class SemanticRetriever:
             return self._qdrant_retrieve_tables(query, all_tables)
 
         # Fallback: relevance ranking based on query keyword matching
+        import re
         q_lower = query.lower()
         scored_tables = []
+        raw_words = [re.sub(r"[^a-z0-9]", "", w) for w in q_lower.replace("_", " ").split()]
+        words = [w for w in raw_words if len(w) > 2]
+
         for table in all_tables:
             tname = table.get("table_name", "").lower()
             desc = table.get("description", "").lower()
             score = 0
-            for word in q_lower.replace("_", " ").split():
-                if len(word) > 2:
-                    if word in tname:
-                        score += 4
-                    if word in desc:
-                        score += 2
+
+            # Generate word stems for singular/plural matching
+            for w in words:
+                stems = [w]
+                if w.endswith("ies"):
+                    stems.append(w[:-3] + "y")
+                elif w.endswith("es"):
+                    stems.append(w[:-2])
+                elif w.endswith("s"):
+                    stems.append(w[:-1])
+
+                for s in stems:
+                    if len(s) > 2:
+                        if s in tname or tname in s:
+                            score += 5
+                        if s in desc:
+                            score += 3
+
             for col in table.get("columns", []):
                 cname = (col.get("name") or col.get("COLUMN_NAME") or "").lower()
-                if cname and len(cname) > 2 and cname in q_lower:
-                    score += 1
+                if cname and cname in words:
+                    score += 2
+
             scored_tables.append((score, table))
 
         scored_tables.sort(key=lambda x: x[0], reverse=True)
         top_positive = [t for s, t in scored_tables if s > 0]
         if top_positive:
-            logger.debug(
-                "[Retriever] Fallback keyword match: returning %d tables (%s)",
-                len(top_positive[: settings.max_tables_in_context]),
-                [t.get("table_name") for t in top_positive[: settings.max_tables_in_context]],
+            selected = top_positive[: settings.max_tables_in_context]
+            logger.info(
+                "[Retriever] Keyword match: returning %d relevant table(s): %s",
+                len(selected),
+                [t.get("table_name") for t in selected],
             )
-            return top_positive[: settings.max_tables_in_context]
+            return selected
 
-        logger.debug("[Retriever] Fallback: returning all %d tables.", len(all_tables))
-        return all_tables[: settings.max_tables_in_context]
+        # If no table scored positively, cap fallback to at most 2 tables to conserve tokens
+        fallback_cap = min(2, settings.max_tables_in_context)
+        logger.debug("[Retriever] Fallback: returning top %d table(s).", fallback_cap)
+        return all_tables[:fallback_cap]
 
     def _qdrant_retrieve_tables(
         self, query: str, all_tables: List[RetrievedTable]

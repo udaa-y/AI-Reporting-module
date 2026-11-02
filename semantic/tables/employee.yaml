@@ -1,0 +1,30 @@
+version: v1
+table: Employee
+schema_name: dbo
+description: Table Employee in dbo schema.
+columns:
+- name: Id
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column Id
+- name: Name
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Name
+- name: Department
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Department
+- name: Type
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Type
+- name: Gender
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Gender
+- name: TPS_Id
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column TPS_Id
+business_notes: Add domain-specific notes and filter rules here.

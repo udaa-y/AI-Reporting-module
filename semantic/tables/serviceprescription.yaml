@@ -1,0 +1,42 @@
+version: v1
+table: ServicePrescription
+schema_name: dbo
+description: Table ServicePrescription in dbo schema.
+columns:
+- name: Id
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column Id
+- name: ServiceCode
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ServiceCode
+- name: ServiceName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ServiceName
+- name: ServiceType
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ServiceType
+- name: Quantity
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Quantity
+- name: Cost
+  type: decimal
+  IS_NULLABLE: 'YES'
+  description: Column Cost
+- name: Facility
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Facility
+- name: Appointment
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column Appointment
+- name: TPS_Id
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column TPS_Id
+business_notes: Add domain-specific notes and filter rules here.

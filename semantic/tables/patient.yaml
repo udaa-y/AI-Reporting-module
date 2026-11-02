@@ -1,0 +1,42 @@
+version: v1
+table: Patient
+schema_name: dbo
+description: Table Patient in dbo schema.
+columns:
+- name: Id
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column Id
+- name: Name
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Name
+- name: MRNNumber
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column MRNNumber
+- name: RegisteredOn
+  type: date
+  IS_NULLABLE: 'YES'
+  description: Column RegisteredOn
+- name: DateOfBirth
+  type: date
+  IS_NULLABLE: 'YES'
+  description: Column DateOfBirth
+- name: Gender
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Gender
+- name: Nationality
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column Nationality
+- name: ResidencyType
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Column ResidencyType
+- name: TPS_Id
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Column TPS_Id
+business_notes: Add domain-specific notes and filter rules here.
