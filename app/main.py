@@ -18,6 +18,7 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from app.api.routes.health import router as health_router
 from app.api.routes.query import router as query_router
+from app.api.routes.vanna import router as vanna_router
 from app.config import get_settings
 
 # ── Logging ───────────────────────────────────────────────────────────────────
@@ -90,6 +91,12 @@ def create_app() -> FastAPI:
         except Exception as exc:
             logger.warning("[Startup] Graph pre-warm failed: %s", exc)
 
+        # Train Vanna from the semantic layer in the background (doesn't delay startup)
+        if settings.vanna_enabled:
+            import threading
+            from app.vanna_ai.engine import get_vanna_or_none
+            threading.Thread(target=get_vanna_or_none, name="vanna-warmup", daemon=True).start()
+
         # Pre-warm SQL Server connection pool
         try:
             from app.db.sqlserver import get_engine
@@ -115,6 +122,7 @@ def create_app() -> FastAPI:
     # ── Routers ───────────────────────────────────────────────────────────────
     app.include_router(query_router)
     app.include_router(health_router)
+    app.include_router(vanna_router)
 
     @app.get("/", include_in_schema=False)
     async def root():

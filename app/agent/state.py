@@ -62,6 +62,15 @@ class ExecutionResult(TypedDict):
     execution_time_ms: float
 
 
+class SqlReview(TypedDict):
+    """Vanna's independent check that the SQL answers the question."""
+    verdict: Literal["correct", "incorrect", "uncertain", "skipped"]
+    confidence: float
+    issues: List[str]
+    explanation: str
+    suggested_sql: Optional[str]
+
+
 class QueryAgentState(TypedDict):
     """
     The complete state object passed between all LangGraph nodes.
@@ -114,6 +123,7 @@ class QueryAgentState(TypedDict):
 
     # ── Node 6: Execution ─────────────────────────────────────────
     execution_result: Optional[ExecutionResult]
+    sql_review: Optional[SqlReview]         # Vanna's verdict on the SQL (parallel to execution)
 
     # ── Node 8: Final Response ────────────────────────────────────
     nl_summary: Optional[str]               # Plain-English result summary

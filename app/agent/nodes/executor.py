@@ -7,8 +7,9 @@ Executes the validated T-SQL query against SQL Server using the
 connection pool. Runs synchronously inside run_in_threadpool() to
 avoid blocking FastAPI's async event loop.
 
-On success: populates state.execution_result
-On failure: sets state.last_db_error so Node 7 (corrector) can fix it
+On success: populates state.execution_result (+ state.sql_review from Vanna)
+On failure: sets state.last_db_error so Node 7 (corrector) can fix it —
+            also used when the Vanna review confidently rejects the SQL
 """
 
 import asyncio
@@ -21,6 +22,12 @@ from fastapi.concurrency import run_in_threadpool
 from app.agent.state import ExecutionResult, QueryAgentState
 from app.config import get_settings
 from app.db.sqlserver import execute_query_sync, get_db_session
+from app.vanna_ai.reviewer import (
+    collect_review,
+    feedback_for_generator,
+    should_retry,
+    start_review,
+)
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -89,8 +96,43 @@ async def executor_node_async(state: QueryAgentState) -> QueryAgentState:
 def executor_node(state: QueryAgentState) -> QueryAgentState:
     """
     Synchronous entry point for LangGraph (which calls nodes synchronously).
-    Wraps the async executor using asyncio.run() or the existing event loop.
+
+    The Vanna SQL review starts first and runs in parallel with the database
+    query, so it only adds latency when it is slower than the query itself.
     """
+    question = state.get("enriched_query") or state.get("raw_query", "")
+    review_future = start_review(question, state.get("generated_sql") or "")
+    result = _execute_node(state)
+    return _apply_review(result, review_future)
+
+
+def _apply_review(result: QueryAgentState, review_future) -> QueryAgentState:
+    """Attach the Vanna review; send confidently-wrong SQL back for correction."""
+    if result.get("last_db_error"):
+        if review_future is not None:
+            review_future.cancel()      # DB error already drives a correction
+        return {**result, "sql_review": None}
+
+    review = collect_review(review_future)
+    result = {**result, "sql_review": review}
+    if review:
+        logger.info(
+            "[Node 6] Vanna review: %s (confidence %.2f)",
+            review["verdict"], review.get("confidence", 0),
+        )
+
+    if should_retry(review) and result.get("sql_attempt_count", 0) < settings.max_sql_retries:
+        logger.info("[Node 6] Review rejected the SQL — routing back for correction.")
+        result.update(
+            execution_result=None,
+            last_db_error=feedback_for_generator(review),
+            pipeline_stage="review_rejected",
+        )
+    return result
+
+
+def _execute_node(state: QueryAgentState) -> QueryAgentState:
+    """Run the async executor from LangGraph's synchronous context."""
     try:
         loop = asyncio.get_running_loop()
         # If there's a running loop (e.g., in a test), create a task

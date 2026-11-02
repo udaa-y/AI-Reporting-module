@@ -19,6 +19,9 @@ langchain-anthropic = "^0.2"
 openai = "^1.50"
 
 qdrant-client = "^1.11"
+vanna = "^2.0.2"                  # SQL review + analytical insights (uses vanna.legacy API)
+pandas = ">=2.0"
+numpy = ">=1.26"
 sqlglot = "^25.0"
 
 pyodbc = "^5.1"
@@ -31,13 +34,12 @@ celery = {extras = ["redis"], version = "^5.4"}
 
 pyyaml = "^6.0"
 python-dotenv = "^1.0"
-httpx = "^0.27"
+httpx = ">=0.28"                   # vanna 2.x requires httpx>=0.28
 tenacity = "^8.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.0"
 pytest-asyncio = "^0.23"
-httpx = "^0.27"
 
 [build-system]
 requires = ["poetry-core"]

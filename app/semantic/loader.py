@@ -19,6 +19,7 @@ Directory structure expected:
 import glob
 import logging
 import os
+import re
 from functools import lru_cache
 from typing import Any, Dict, List
 
@@ -262,6 +263,26 @@ class SemanticLoader:
             if isinstance(mappings, dict):
                 result.update(mappings)
         return result
+
+    # ── Free-form documentation ───────────────────────────────────────────────
+
+    def load_documentation(self) -> List[str]:
+        """Return the text of every semantic/documentation/*.md file (business rules, glossary...)."""
+        docs = []
+        for filepath in sorted(glob.glob(os.path.join(self.base_dir, "documentation", "*.md"))):
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    # HTML comments hold authoring hints, not business knowledge.
+                    text = re.sub(r"<!--.*?-->", "", f.read(), flags=re.S).strip()
+                if text:
+                    docs.append(text)
+            except Exception as exc:
+                logger.warning("[SemanticLoader] Failed to load %s: %s", filepath, exc)
+        return docs
+
+    def reload(self) -> None:
+        """Drop cached definitions so the next load re-reads the YAML files."""
+        self._tables = self._metrics = self._joins = self._few_shots = None
 
     # ── Internal YAML loader ──────────────────────────────────────────────────
 

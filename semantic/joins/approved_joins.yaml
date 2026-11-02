@@ -14,12 +14,12 @@ approved_joins:
     aliases: {Patient: "p", Appointment: "a"}
     notes: "Connects patient demographics to their appointment records."
 
-  - from_table: Patient
+  - from_table: Appointment
     to_table: Employee
     join_type: INNER JOIN
-    condition: "p.DoctorId = e.Id"
-    aliases: {Patient: "p", Employee: "e"}
-    notes: "Connects patient records to their assigned doctors."
+    condition: "a.DoctorId = e.Id"
+    aliases: {Appointment: "a", Employee: "e"}
+    notes: "Connects appointment visits to the doctor who saw the patient. (Patient has no DoctorId column; the doctor is recorded per appointment.)"
 
   - from_table: Appointment
     to_table: Complaints

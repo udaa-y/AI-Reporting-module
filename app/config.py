@@ -87,6 +87,20 @@ class Settings(BaseSettings):
     qa_max_input_rows: int = 60             # Max result rows shown to the follow-up Q&A LLM
     summary_model: str = ""                 # Empty = reuse LLM_INTENT_MODEL
 
+    # ── Vanna AI (SQL review + analytical insights) ──────────────
+    vanna_enabled: bool = True
+    vanna_model: str = ""                   # Empty = reuse LLM_SQL_MODEL (review needs a strong model)
+    vanna_fast_model: str = ""              # Empty = reuse LLM_INTENT_MODEL (follow-up questions)
+    vanna_vector_store: str = "memory"      # "memory" (instant, in-process) or "qdrant" (persistent, embedded)
+    vanna_qdrant_prefix: str = "vanna_"     # Collection prefix when vanna_vector_store = "qdrant"
+    vanna_review_enabled: bool = True       # Review generated SQL in parallel with execution
+    vanna_review_timeout_seconds: float = 8.0
+    vanna_review_min_confidence: float = 0.75   # Only an "incorrect" verdict at/above this triggers a retry
+    vanna_analysis_max_tokens: int = 900
+    vanna_analysis_sample_rows: int = 15    # Raw rows shown to the LLM (0 = send only computed aggregates)
+    vanna_learned_examples_path: str = "./semantic/few_shots/learned_examples.yaml"
+    inline_insights: bool = False           # True = old behaviour: narrative generated inside /query (slower)
+
     # ── Agent ────────────────────────────────────────────────────
     max_sql_retries: int = 3
     max_result_rows: int = 1000

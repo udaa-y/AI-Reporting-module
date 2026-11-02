@@ -100,6 +100,19 @@
       font-size: 12px;
       margin-top: 5px;
     }
+    .review { margin-top: 8px; padding: 8px 12px; border-left: 4px solid #999; background: #f4f4f4; font-size: 13px; }
+    .review.correct { border-color: #2e7d32; background: #eef7ee; }
+    .review.incorrect { border-color: #c62828; background: #fdecea; }
+    .review.uncertain, .review.skipped { border-color: #e6a800; background: #fffbea; }
+    .feedback { margin-top: 8px; font-size: 13px; color: #555; }
+    .feedback button { padding: 3px 10px; font-size: 13px; }
+    .kpis { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+    .kpi { border: 1px solid #cfd8e3; background: #fff; padding: 8px 12px; min-width: 120px; }
+    .kpi .v { font-size: 18px; font-weight: bold; color: #003366; }
+    .kpi .l { font-size: 12px; color: #666; }
+    .chip { display: inline-block; font-size: 11px; padding: 2px 8px; margin: 0 4px 4px 0; border-radius: 10px; background: #e0e8f5; color: #003366; }
+    .analysis ul { margin: 4px 0 8px 20px; padding: 0; }
+    .analysis p { margin: 6px 0; }
     #loading {
       display: none;
       font-weight: bold;
@@ -147,10 +160,13 @@
   <!-- Results Section -->
   <div id="resultsSection" style="display: none;">
     
-    <!-- AI Summary -->
+    <!-- AI Analysis (Vanna) -->
     <div class="box">
-      <h3>AI Business Analysis</h3>
-      <div id="summaryContent" class="summary-text"></div>
+      <h3>AI Analysis <span class="meta-info" id="analysisEngine"></span></h3>
+      <div id="analysisTypes"></div>
+      <div id="kpiTiles" class="kpis"></div>
+      <div id="summaryContent" class="summary-text analysis"></div>
+      <div id="followups" style="margin-top:10px;"></div>
       <div class="meta-info" id="statsContent"></div>
     </div>
 
@@ -158,6 +174,13 @@
     <div class="box">
       <h3>Generated T-SQL Query</h3>
       <pre><code id="sqlContent"></code></pre>
+      <div id="sqlReview" class="review" style="display:none;"></div>
+      <div class="feedback" id="feedbackBox">
+        Is this the right query for your question?
+        <button onclick="sendFeedback(true)">👍 Correct</button>
+        <button onclick="sendFeedback(false)">👎 Wrong</button>
+        <span id="feedbackMsg"></span>
+      </div>
     </div>
 
     <!-- Ask questions about the retrieved data -->
@@ -350,12 +373,16 @@
       document.getElementById("askInput").value = "";
       document.getElementById("resultsSection").style.display = "block";
 
-      // Summary
+      // Summary — the full analysis is loaded from Vanna after the table renders
       const summaryEl = document.getElementById("summaryContent");
-      summaryEl.style.whiteSpace = "pre-wrap";
-      const safe = (data.summary || "No summary available.")
-        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-      summaryEl.innerHTML = safe.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+      summaryEl.innerHTML = renderMarkdown(data.summary || "No summary available.");
+      document.getElementById("analysisTypes").innerHTML = "";
+      document.getElementById("kpiTiles").innerHTML = "";
+      document.getElementById("followups").innerHTML = "";
+      document.getElementById("analysisEngine").innerText = "";
+      document.getElementById("feedbackMsg").innerText = "";
+      showReview(data.sql_review);
+      if (data.insights_deferred) loadInsights();
       document.getElementById("statsContent").innerText = 
         `Execution time: ${data.execution_time_ms || 0}ms | Total time: ${data.total_processing_time_ms || 0}ms | SQL attempts: ${data.sql_attempts || 1}`;
 
@@ -400,6 +427,112 @@
         td.innerText = "No records returned.";
         tr.appendChild(td);
         tbody.appendChild(tr);
+      }
+    }
+
+    // Minimal, safe markdown: **bold**, "- " bullets, paragraphs
+    function renderMarkdown(text) {
+      const lines = escapeBold(text).split("\n");
+      let html = "", inList = false;
+      for (const raw of lines) {
+        const line = raw.trim();
+        const bullet = line.match(/^[-*•]\s+(.*)/);
+        if (bullet) {
+          if (!inList) { html += "<ul>"; inList = true; }
+          html += "<li>" + bullet[1] + "</li>";
+          continue;
+        }
+        if (inList) { html += "</ul>"; inList = false; }
+        if (line) html += "<p>" + line.replace(/^#+\s*/, "") + "</p>";
+      }
+      return html + (inList ? "</ul>" : "");
+    }
+
+    function showReview(review) {
+      const el = document.getElementById("sqlReview");
+      if (!review) { el.style.display = "none"; return; }
+      const labels = {
+        correct: "✅ Vanna verified this query answers your question",
+        incorrect: "⚠️ Vanna thinks this query may not answer your question",
+        uncertain: "❔ Vanna could not fully verify this query",
+        skipped: "ℹ️ Query not verified",
+      };
+      el.className = "review " + review.verdict;
+      let html = "<b>" + (labels[review.verdict] || review.verdict) + "</b>";
+      if (review.confidence) html += " (confidence " + Math.round(review.confidence * 100) + "%)";
+      if (review.explanation) html += "<br>" + escapeBold(review.explanation);
+      if (review.issues && review.issues.length) {
+        html += "<ul>" + review.issues.map(i => "<li>" + escapeBold(i) + "</li>").join("") + "</ul>";
+      }
+      el.innerHTML = html;
+      el.style.display = "block";
+    }
+
+    let insightsRequest = 0;
+    async function loadInsights() {
+      const myRequest = ++insightsRequest;   // ignore answers for an older query
+      const summaryEl = document.getElementById("summaryContent");
+      summaryEl.innerHTML = "<em>Vanna is analysing the results (trends, comparisons, anomalies, forecast)...</em>";
+      try {
+        const response = await fetch("/query/insights", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: currentSessionId })
+        });
+        const data = await response.json();
+        if (myRequest !== insightsRequest) return;
+        if (data.status !== "success") {
+          summaryEl.innerText = data.message || "AI analysis unavailable.";
+          return;
+        }
+        summaryEl.innerHTML = renderMarkdown(data.analysis || "");
+        document.getElementById("analysisEngine").innerText =
+          (data.engine === "vanna" ? "· by Vanna AI" : "· computed (AI narrative unavailable)") +
+          (data.processing_time_ms != null ? " · " + data.processing_time_ms + "ms" : "") +
+          (data.cached ? " · cached" : "");
+        document.getElementById("analysisTypes").innerHTML = (data.analysis_types || [])
+          .map(t => '<span class="chip">' + escapeBold(t) + "</span>").join("");
+        renderKpis((data.highlights || {}).kpis || []);
+        renderFollowups(data.followup_questions || []);
+      } catch (err) {
+        if (myRequest === insightsRequest) summaryEl.innerText = "AI analysis error: " + err.message;
+      }
+    }
+
+    function renderKpis(kpis) {
+      const fmt = v => typeof v === "number" ? v.toLocaleString(undefined, { maximumFractionDigits: 2 }) : v;
+      document.getElementById("kpiTiles").innerHTML = kpis.slice(0, 6).map(k =>
+        '<div class="kpi"><div class="v">' + escapeBold(String(fmt(k.value))) +
+        '</div><div class="l">' + escapeBold(k.label) + "</div></div>").join("");
+    }
+
+    function renderFollowups(questions) {
+      const box = document.getElementById("followups");
+      box.innerHTML = questions.length ? "<b>Dig deeper:</b><br>" : "";
+      questions.forEach(q => {
+        const btn = document.createElement("button");
+        btn.className = "btn-option";
+        btn.innerText = q;
+        btn.onclick = () => { document.getElementById("queryInput").value = q; runQuery(); };
+        box.appendChild(btn);
+      });
+    }
+
+    async function sendFeedback(correct) {
+      const msg = document.getElementById("feedbackMsg");
+      msg.innerText = "Saving...";
+      try {
+        const response = await fetch("/query/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: currentSessionId, correct: correct })
+        });
+        const data = await response.json();
+        msg.innerText = data.status !== "success" ? (data.message || "Could not save feedback.")
+          : correct ? "Thanks — Vanna learned this query for similar questions."
+          : "Thanks — noted. Try rephrasing the question with more detail.";
+      } catch (err) {
+        msg.innerText = "Error: " + err.message;
       }
     }
 

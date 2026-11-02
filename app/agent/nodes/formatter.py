@@ -3,8 +3,10 @@ app/agent/nodes/formatter.py
 ──────────────────────────────
 Node 8 — Response Formatter
 
-Assembles the final structured response payload and generates a business
-insight analysis of the results (see app/agent/insights.py).
+Assembles the final structured response payload. The detailed analysis is
+produced afterwards by the Vanna analyst (POST /query/insights); set
+INLINE_INSIGHTS=true to generate the older narrative (app/agent/insights.py)
+inside the request instead.
 
 This is the last node in the happy path. The response is designed to
 be transparent — it always includes the generated SQL so the user
@@ -41,8 +43,13 @@ def formatter_node(state: QueryAgentState) -> QueryAgentState:
     logger.info("[Node 8] Formatting response — row_count=%d", row_count)
 
     # ── Generate business insight ──────────────────────────────────────────────
+    # By default the detailed analysis is produced by Vanna via POST /query/insights
+    # AFTER the results are on screen, so /query returns as soon as the data is ready.
     summary_error = None
-    if rows:
+    insights_deferred = bool(rows) and not settings.inline_insights
+    if insights_deferred:
+        nl_summary = f"Returned {row_count} row(s). AI analysis is being prepared..."
+    elif rows:
         try:
             nl_summary, summary_error = generate_insight(
                 state.get("raw_query", ""), columns, rows, row_count
@@ -72,6 +79,8 @@ def formatter_node(state: QueryAgentState) -> QueryAgentState:
         "row_count": row_count,
         "summary": nl_summary,
         "summary_error": summary_error,
+        "insights_deferred": insights_deferred,
+        "sql_review": state.get("sql_review"),
         "execution_time_ms": exec_time,
         "sql_attempts": state.get("sql_attempt_count", 1),
         "data_freshness": "live",

@@ -21,7 +21,8 @@ RUN pip install --no-cache-dir \
     fastapi uvicorn[standard] pydantic pydantic-settings \
     langgraph langchain langchain-openai langchain-anthropic openai \
     qdrant-client sqlglot pyodbc sqlalchemy asyncpg alembic \
-    redis pyyaml python-dotenv httpx tenacity
+    redis pyyaml python-dotenv "httpx>=0.28" tenacity \
+    "vanna==2.0.2" pandas numpy
 
 COPY app/ ./app/
 COPY semantic/ ./semantic/

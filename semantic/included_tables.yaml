@@ -15,4 +15,4 @@ tables:
     description: "Stores services prescribed or performed during appointments, including service code, name, type, quantity, cost, facility, appointment reference, and TPS identifier."
 
   - name: MedicinePrescription
-    description: "Contains department details including DepartmentId, Title, and Description."
+    description: "Stores medicines prescribed during appointments, including medicine code, name, type, quantity, use type, facility, status, manufacturer, appointment reference, and TPS identifier."

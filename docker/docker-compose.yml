@@ -15,7 +15,7 @@ services:
       - qdrant
       - postgres
     volumes:
-      - ../semantic:/app/semantic:ro   # Mount semantic YAML (read-only)
+      - ../semantic:/app/semantic      # Semantic YAML (writable: 👍 feedback saves learned examples)
     restart: unless-stopped
 
   # ── Redis (Cache + Celery Broker) ──────────────────────────────
