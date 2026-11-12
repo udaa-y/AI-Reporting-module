@@ -16,3 +16,6 @@ tables:
 
   - name: MedicinePrescription
     description: "Contains department details including DepartmentId, Title, and Description."
+
+  - name: BranchMaster
+    description: "Clinic branches (name, code, region, HQ flag). Join on BranchId for branch-wise reports."

@@ -146,7 +146,9 @@ def sql_generator_node(state: QueryAgentState) -> QueryAgentState:
     attempt = state.get("sql_attempt_count", 0) + 1
     enriched_query = state.get("enriched_query") or state["raw_query"]
     last_error: Optional[str] = state.get("last_db_error")
-    previous_sql: Optional[str] = state.get("generated_sql")
+    
+    # Correct the query as the model wrote it, not the branch-scoped rewrite.
+    previous_sql: Optional[str] = state.get("base_sql") or state.get("generated_sql")
 
     logger.info("[Node 4] SQL generation attempt %d — query: %r", attempt, enriched_query)
 

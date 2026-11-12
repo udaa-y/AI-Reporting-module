@@ -1,0 +1,89 @@
+.date-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.date-filter__presets {
+  display: inline-flex;
+  padding: 4px;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(191, 227, 255, 0.18);
+  border-radius: var(--radius-md);
+}
+
+.date-filter__preset {
+  min-width: 44px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--sky-200);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.date-filter__preset:hover {
+  color: var(--white);
+  background: rgba(124, 196, 250, 0.14);
+}
+
+.date-filter__preset.is-active {
+  background: var(--white);
+  color: var(--navy-800);
+  box-shadow: var(--shadow-sm);
+}
+
+.date-filter__custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.date-filter__custom.is-invalid {
+  border-color: var(--color-negative);
+}
+
+.date-filter__icon {
+  color: var(--sky-500);
+}
+
+.date-filter__field input {
+  border: 0;
+  padding: 6px 4px;
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.date-filter__field input:focus {
+  outline: none;
+}
+
+.date-filter__field input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.date-filter__sep {
+  color: var(--color-text-subtle);
+}
+
+.date-filter__error {
+  position: absolute;
+  right: 0;
+  bottom: -22px;
+  margin: 0;
+  color: #ffd4d0;
+  font-size: var(--text-xs);
+}

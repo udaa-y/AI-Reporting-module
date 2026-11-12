@@ -14,7 +14,7 @@ Writes:  state.validation_result, state.pipeline_stage
 import logging
 
 from app.agent.state import QueryAgentState, ValidationResult as StateValidationResult
-from app.utils.sql_safety import validate_sql
+from app.utils.sql_safety import apply_branch_scope, validate_sql
 
 logger = logging.getLogger(__name__)
 
@@ -66,10 +66,26 @@ def validator_node(state: QueryAgentState) -> QueryAgentState:
             "; ".join(validation.errors)
         )
 
+    final_sql = validation.sanitized_sql or raw_sql
+    base_sql = final_sql
+    branch_ids = state.get("branch_ids")
+    if validation.passed and branch_ids:
+        # Hard branch isolation: every branch-aware table is pre-filtered.
+        try:
+            from app.semantic.retriever import get_retriever
+            rules = get_retriever()._loader.load_branch_rules()
+            final_sql = apply_branch_scope(final_sql, branch_ids, rules)
+        except Exception as exc:
+            logger.warning("[Node 5] Branch scoping failed: %s", exc)
+            result = {"passed": False, "sanitized_sql": None,
+                      "errors": [f"Could not apply the branch filter to this query: {exc}"]}
+
     return {
         **state,
         "validation_result": result,
-        "pipeline_stage": "validated" if validation.passed else "validation_failed",
-        # Update generated_sql to the sanitized version (with TOP N injected)
-        "generated_sql": validation.sanitized_sql or raw_sql,
+        "pipeline_stage": "validated" if result["passed"] else "validation_failed",
+        # Update generated_sql to the sanitized version (with TOP N injected,
+        # branch-scoped); base_sql keeps it without the branch (for learning).
+        "generated_sql": final_sql,
+        "base_sql": base_sql,
     }

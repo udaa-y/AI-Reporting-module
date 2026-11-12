@@ -1,17 +1,461 @@
 # semantic/few_shots/examples.yaml
-# ─────────────────────────────────────────────────────────────
-# VERIFIED QUERY EXAMPLES (FEW-SHOT PROMPTING)
-# Add verified question -> T-SQL pairs here.
-# Adding domain-specific queries here directly trains the AI
-# on your preferred SQL patterns without fine-tuning.
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# VERIFIED QUERY LIBRARY
+# Questions that match a template here are answered WITHOUT the LLM (instant,
+# no tokens). Templates are also shown to the LLM as examples for other questions.
+#
+#   id              unique name
+#   scope           Ask AI section key(s) from app/assistant/scopes.py
+#   questions       phrasings — add as many as you like; word order, plurals,
+#                   synonyms (visits/appointments, physicians/doctors…) don't matter
+#   sql             T-SQL with slots:
+#                     {date_from} {date_to}     the asked period (to = exclusive)
+#                     {date_last}               last day of the period (inclusive)
+#                     {prev_from} {prev_to}     the period just before it
+#                     {top_n}                   "top 5", "3 busiest"…
+#                   Do NOT filter on BranchId: the selected branch is applied automatically.
+#   defaults        period / top_n used when the question doesn't say
+#   chart           {type, x, y, series} — line | area | bar | horizontal_bar |
+#                   grouped_bar | stacked_bar | donut | stat | table
+#   branch_compare  true = compares branches itself (Super Admins only)
+#
+# Status values: replace the LIKE patterns below with your real VisitStatus values.
+# ─────────────────────────────────────────────────────────────────────────────
 
-version: v1
+version: v2
 
-examples:
-  # - question: "List all active records"
-  #   sql: |
-  #     SELECT TOP 1000 id, name
-  #     FROM dbo.YourTableName
-  #     WHERE status = 'active'
-  #   tables_used: [YourTableName]
+templates:
+  # ── Appointments ──────────────────────────────────────────────────────────
+  - id: appointments_total
+    scope: [appointments, patients]
+    questions:
+      - "how many appointments {period}"
+      - "total appointments {period}"
+      - "number of visits {period}"
+      - "appointment count {period}"
+    sql: |
+      SELECT COUNT(*) AS Appointments, COUNT(DISTINCT a.PatientId) AS Patients
+      FROM Appointment a
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+    defaults: {period: "this month"}
+    chart: {type: stat, y: [Appointments, Patients]}
+
+  - id: appointments_by_month
+    scope: appointments
+    questions:
+      - "appointments by month {period}"
+      - "monthly appointments {period}"
+      - "how many appointments each month {period}"
+      - "appointment trend {period}"
+    sql: |
+      SELECT FORMAT(a.VisitDate, 'yyyy-MM') AS Month, COUNT(*) AS Appointments
+      FROM Appointment a
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY FORMAT(a.VisitDate, 'yyyy-MM')
+      ORDER BY Month
+    defaults: {period: "this year"}
+    chart: {type: line, x: Month, y: [Appointments]}
+
+  - id: appointments_by_day
+    scope: appointments
+    questions:
+      - "appointments per day {period}"
+      - "daily appointments {period}"
+      - "appointments by date {period}"
+    sql: |
+      SELECT CAST(a.VisitDate AS date) AS VisitDay, COUNT(*) AS Appointments
+      FROM Appointment a
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY CAST(a.VisitDate AS date)
+      ORDER BY VisitDay
+    defaults: {period: "last 30 days"}
+    chart: {type: area, x: VisitDay, y: [Appointments]}
+
+  - id: appointments_by_weekday
+    scope: appointments
+    questions:
+      - "appointments by day of the week {period}"
+      - "busiest day of the week {period}"
+      - "which weekday is busiest {period}"
+    sql: |
+      SELECT DATENAME(weekday, a.VisitDate) AS Weekday, COUNT(*) AS Appointments
+      FROM Appointment a
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY DATENAME(weekday, a.VisitDate), DATEPART(weekday, a.VisitDate)
+      ORDER BY DATEPART(weekday, a.VisitDate)
+    defaults: {period: "last 3 months"}
+    chart: {type: bar, x: Weekday, y: [Appointments]}
+
+  - id: appointments_per_doctor
+    scope: [appointments, doctors]
+    questions:
+      - "appointments per doctor {period}"
+      - "which doctors saw the most patients {period}"
+      - "top {top_n} doctors by appointments {period}"
+      - "busiest doctors {period}"
+      - "doctor workload {period}"
+    sql: |
+      SELECT TOP {top_n} e.Name AS Doctor, COUNT(*) AS Appointments,
+             COUNT(DISTINCT a.PatientId) AS Patients
+      FROM Appointment a
+      JOIN Employee e ON e.Id = a.DoctorId
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY e.Name
+      ORDER BY Appointments DESC
+    defaults: {period: "this month", top_n: 10}
+    chart: {type: horizontal_bar, x: Doctor, y: [Appointments]}
+
+  - id: least_busy_doctors
+    scope: [appointments, doctors]
+    questions:
+      - "doctors with the fewest appointments {period}"
+      - "which doctors saw the fewest patients {period}"
+      - "least busy doctors {period}"
+      - "bottom {top_n} doctors by appointments {period}"
+    sql: |
+      SELECT TOP {top_n} e.Name AS Doctor, COUNT(*) AS Appointments
+      FROM Appointment a
+      JOIN Employee e ON e.Id = a.DoctorId
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY e.Name
+      ORDER BY Appointments ASC
+    defaults: {period: "this month", top_n: 10}
+    chart: {type: horizontal_bar, x: Doctor, y: [Appointments]}
+
+  - id: appointments_by_department
+    scope: [appointments, doctors]
+    questions:
+      - "appointments by department {period}"
+      - "department wise appointments {period}"
+      - "which department had the most appointments {period}"
+      - "busiest departments {period}"
+    sql: |
+      SELECT e.Department, COUNT(*) AS Appointments, COUNT(DISTINCT a.PatientId) AS Patients
+      FROM Appointment a
+      JOIN Employee e ON e.Id = a.DoctorId
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY e.Department
+      ORDER BY Appointments DESC
+    defaults: {period: "this month"}
+    chart: {type: horizontal_bar, x: Department, y: [Appointments]}
+
+  - id: appointments_by_status
+    scope: appointments
+    questions:
+      - "appointments by status {period}"
+      - "appointment status breakdown {period}"
+      - "visit status {period}"
+    sql: |
+      SELECT ISNULL(a.VisitStatus, 'Not specified') AS Status, COUNT(*) AS Appointments
+      FROM Appointment a
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY a.VisitStatus
+      ORDER BY Appointments DESC
+    defaults: {period: "this month"}
+    chart: {type: donut, x: Status, y: [Appointments]}
+
+  - id: cancelled_appointments
+    scope: appointments
+    questions:
+      - "how many appointments were cancelled {period}"
+      - "cancelled appointments {period}"
+      - "cancellation rate {period}"
+    sql: |
+      SELECT SUM(CASE WHEN a.VisitStatus LIKE '%cancel%' THEN 1 ELSE 0 END) AS Cancelled,
+             COUNT(*) AS Appointments,
+             CAST(100.0 * SUM(CASE WHEN a.VisitStatus LIKE '%cancel%' THEN 1 ELSE 0 END)
+                  / NULLIF(COUNT(*), 0) AS DECIMAL(5, 1)) AS CancelledPct
+      FROM Appointment a
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+    defaults: {period: "this month"}
+    chart: {type: stat, y: [Cancelled, Appointments, CancelledPct]}
+
+  - id: follow_up_visits
+    scope: appointments
+    questions:
+      - "follow-up visits {period}"
+      - "how many follow-up appointments {period}"
+      - "share of follow-up visits {period}"
+    sql: |
+      SELECT SUM(CASE WHEN a.ParentAppointment IS NOT NULL THEN 1 ELSE 0 END) AS FollowUps,
+             COUNT(*) AS Appointments,
+             CAST(100.0 * SUM(CASE WHEN a.ParentAppointment IS NOT NULL THEN 1 ELSE 0 END)
+                  / NULLIF(COUNT(*), 0) AS DECIMAL(5, 1)) AS FollowUpPct
+      FROM Appointment a
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+    defaults: {period: "this month"}
+    chart: {type: stat, y: [FollowUps, Appointments, FollowUpPct]}
+
+  - id: appointments_vs_previous
+    scope: [appointments, doctors]
+    questions:
+      - "compare appointments {period} with the previous period"
+      - "appointments {period} vs previous"
+      - "how did appointments change {period}"
+      - "appointment growth {period}"
+    sql: |
+      SELECT SUM(CASE WHEN a.VisitDate >= {date_from} THEN 1 ELSE 0 END) AS CurrentPeriod,
+             SUM(CASE WHEN a.VisitDate < {prev_to} THEN 1 ELSE 0 END) AS PreviousPeriod,
+             CAST(100.0 * (SUM(CASE WHEN a.VisitDate >= {date_from} THEN 1 ELSE 0 END)
+                         - SUM(CASE WHEN a.VisitDate < {prev_to} THEN 1 ELSE 0 END))
+                  / NULLIF(SUM(CASE WHEN a.VisitDate < {prev_to} THEN 1 ELSE 0 END), 0)
+                  AS DECIMAL(6, 1)) AS ChangePct
+      FROM Appointment a
+      WHERE a.VisitDate >= {prev_from} AND a.VisitDate < {date_to}
+    defaults: {period: "this month"}
+    chart: {type: stat, y: [CurrentPeriod, PreviousPeriod, ChangePct]}
+
+  - id: doctors_vs_previous
+    scope: [appointments, doctors]
+    questions:
+      - "compare doctor appointments {period} with the previous period"
+      - "doctor appointments {period} vs previous"
+      - "how did each doctor change {period}"
+    sql: |
+      SELECT e.Name AS Doctor,
+             SUM(CASE WHEN a.VisitDate >= {date_from} THEN 1 ELSE 0 END) AS CurrentPeriod,
+             SUM(CASE WHEN a.VisitDate < {prev_to} THEN 1 ELSE 0 END) AS PreviousPeriod
+      FROM Appointment a
+      JOIN Employee e ON e.Id = a.DoctorId
+      WHERE a.VisitDate >= {prev_from} AND a.VisitDate < {date_to}
+      GROUP BY e.Name
+      ORDER BY CurrentPeriod DESC
+    defaults: {period: "this month"}
+    chart: {type: grouped_bar, x: Doctor, y: [CurrentPeriod, PreviousPeriod]}
+
+  - id: appointments_by_patient_type
+    scope: [appointments, patients]
+    questions:
+      - "appointments by patient type {period}"
+      - "patient type breakdown {period}"
+    sql: |
+      SELECT ISNULL(a.PatientType, 'Not specified') AS PatientType, COUNT(*) AS Appointments
+      FROM Appointment a
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY a.PatientType
+      ORDER BY Appointments DESC
+    defaults: {period: "this month"}
+    chart: {type: donut, x: PatientType, y: [Appointments]}
+
+  # ── Patients ──────────────────────────────────────────────────────────────
+  - id: patients_seen
+    scope: [patients, appointments]
+    questions:
+      - "patients seen {period}"
+      - "how many unique patients {period}"
+      - "how many patients visited {period}"
+    sql: |
+      SELECT COUNT(DISTINCT a.PatientId) AS Patients, COUNT(*) AS Appointments
+      FROM Appointment a
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+    defaults: {period: "this month"}
+    chart: {type: stat, y: [Patients, Appointments]}
+
+  - id: new_registrations
+    scope: patients
+    questions:
+      - "new patients {period}"
+      - "how many new patients registered {period}"
+      - "new registrations {period}"
+    sql: |
+      SELECT COUNT(*) AS NewPatients
+      FROM Patient p
+      WHERE p.RegisteredOn >= {date_from} AND p.RegisteredOn < {date_to}
+    defaults: {period: "this month"}
+    chart: {type: stat, y: [NewPatients]}
+
+  - id: registrations_by_month
+    scope: patients
+    questions:
+      - "new registrations by month {period}"
+      - "monthly patient registrations {period}"
+      - "new patients each month {period}"
+    sql: |
+      SELECT FORMAT(p.RegisteredOn, 'yyyy-MM') AS Month, COUNT(*) AS NewPatients
+      FROM Patient p
+      WHERE p.RegisteredOn >= {date_from} AND p.RegisteredOn < {date_to}
+      GROUP BY FORMAT(p.RegisteredOn, 'yyyy-MM')
+      ORDER BY Month
+    defaults: {period: "this year"}
+    chart: {type: line, x: Month, y: [NewPatients]}
+
+  - id: patients_by_gender
+    scope: patients
+    questions:
+      - "patients by gender {period}"
+      - "gender split of patients {period}"
+      - "male vs female patients {period}"
+    sql: |
+      SELECT ISNULL(p.Gender, 'Not specified') AS Gender, COUNT(DISTINCT a.PatientId) AS Patients
+      FROM Appointment a
+      JOIN Patient p ON p.Id = a.PatientId
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY p.Gender
+      ORDER BY Patients DESC
+    defaults: {period: "this month"}
+    chart: {type: donut, x: Gender, y: [Patients]}
+
+  - id: patients_by_nationality
+    scope: patients
+    questions:
+      - "patients by nationality {period}"
+      - "top {top_n} nationalities {period}"
+      - "which nationalities visit most {period}"
+    sql: |
+      SELECT TOP {top_n} ISNULL(p.Nationality, 'Not specified') AS Nationality,
+             COUNT(DISTINCT a.PatientId) AS Patients
+      FROM Appointment a
+      JOIN Patient p ON p.Id = a.PatientId
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY p.Nationality
+      ORDER BY Patients DESC
+    defaults: {period: "this year", top_n: 10}
+    chart: {type: horizontal_bar, x: Nationality, y: [Patients]}
+
+  - id: patients_by_age_group
+    scope: patients
+    questions:
+      - "patients by age group {period}"
+      - "age distribution of patients {period}"
+      - "patient ages {period}"
+    sql: |
+      SELECT AgeGroup, COUNT(*) AS Patients
+      FROM (
+        SELECT DISTINCT a.PatientId,
+               CASE WHEN DATEDIFF(YEAR, p.DateOfBirth, {date_last}) < 13 THEN '0-12'
+                    WHEN DATEDIFF(YEAR, p.DateOfBirth, {date_last}) < 18 THEN '13-17'
+                    WHEN DATEDIFF(YEAR, p.DateOfBirth, {date_last}) < 30 THEN '18-29'
+                    WHEN DATEDIFF(YEAR, p.DateOfBirth, {date_last}) < 45 THEN '30-44'
+                    WHEN DATEDIFF(YEAR, p.DateOfBirth, {date_last}) < 60 THEN '45-59'
+                    WHEN DATEDIFF(YEAR, p.DateOfBirth, {date_last}) < 75 THEN '60-74'
+                    WHEN p.DateOfBirth IS NULL THEN 'Unknown'
+                    ELSE '75+' END AS AgeGroup
+        FROM Appointment a
+        JOIN Patient p ON p.Id = a.PatientId
+        WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      ) x
+      GROUP BY AgeGroup
+      ORDER BY AgeGroup
+    defaults: {period: "this year"}
+    chart: {type: bar, x: AgeGroup, y: [Patients]}
+
+  - id: frequent_patients
+    scope: patients
+    questions:
+      - "patients with the most visits {period}"
+      - "most frequent patients {period}"
+      - "top {top_n} patients by visits {period}"
+    sql: |
+      SELECT TOP {top_n} p.Name AS Patient, p.MRNNumber AS MRN, COUNT(*) AS Visits
+      FROM Appointment a
+      JOIN Patient p ON p.Id = a.PatientId
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY p.Name, p.MRNNumber
+      ORDER BY Visits DESC
+    defaults: {period: "this year", top_n: 10}
+    chart: {type: horizontal_bar, x: Patient, y: [Visits]}
+
+  # ── Services ──────────────────────────────────────────────────────────────
+  - id: top_services_by_revenue
+    scope: services
+    questions:
+      - "top {top_n} services by revenue {period}"
+      - "which services earned the most {period}"
+      - "service revenue by service {period}"
+    sql: |
+      SELECT TOP {top_n} sp.ServiceName AS Service, SUM(ISNULL(sp.Cost, 0)) AS Revenue,
+             SUM(ISNULL(sp.Quantity, 1)) AS Quantity
+      FROM ServicePrescription sp
+      JOIN Appointment a ON a.Id = sp.Appointment
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY sp.ServiceName
+      ORDER BY Revenue DESC
+    defaults: {period: "this month", top_n: 10}
+    chart: {type: horizontal_bar, x: Service, y: [Revenue]}
+
+  - id: revenue_by_month
+    scope: services
+    questions:
+      - "service revenue by month {period}"
+      - "monthly revenue {period}"
+      - "revenue trend {period}"
+    sql: |
+      SELECT FORMAT(a.VisitDate, 'yyyy-MM') AS Month, SUM(ISNULL(sp.Cost, 0)) AS Revenue
+      FROM ServicePrescription sp
+      JOIN Appointment a ON a.Id = sp.Appointment
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY FORMAT(a.VisitDate, 'yyyy-MM')
+      ORDER BY Month
+    defaults: {period: "this year"}
+    chart: {type: line, x: Month, y: [Revenue]}
+
+  # ── Branch comparison (Super Admins, all branches) ────────────────────────
+  - id: appointments_by_branch
+    scope: [appointments, patients, doctors]
+    branch_compare: true
+    questions:
+      - "appointments by branch {period}"
+      - "compare branches by appointments {period}"
+      - "which branch had the most appointments {period}"
+      - "branch wise appointments {period}"
+    sql: |
+      SELECT b.BranchName AS Branch, COUNT(*) AS Appointments, COUNT(DISTINCT a.PatientId) AS Patients
+      FROM Appointment a
+      JOIN BranchMaster b ON b.BranchId = a.BranchId
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY b.BranchName
+      ORDER BY Appointments DESC
+    defaults: {period: "this month"}
+    chart: {type: bar, x: Branch, y: [Appointments]}
+
+  - id: monthly_appointments_by_branch
+    scope: [appointments, doctors]
+    branch_compare: true
+    questions:
+      - "monthly appointments by branch {period}"
+      - "appointment trend by branch {period}"
+      - "compare branches month by month {period}"
+    sql: |
+      SELECT FORMAT(a.VisitDate, 'yyyy-MM') AS Month, b.BranchName AS Branch, COUNT(*) AS Appointments
+      FROM Appointment a
+      JOIN BranchMaster b ON b.BranchId = a.BranchId
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY FORMAT(a.VisitDate, 'yyyy-MM'), b.BranchName
+      ORDER BY Month, Branch
+    defaults: {period: "this year"}
+    chart: {type: line, x: Month, y: [Appointments], series: Branch}
+
+  - id: new_patients_by_branch
+    scope: patients
+    branch_compare: true
+    questions:
+      - "new patients by branch {period}"
+      - "compare branches by new registrations {period}"
+      - "which branch registered the most patients {period}"
+    sql: |
+      SELECT b.BranchName AS Branch, COUNT(*) AS NewPatients
+      FROM Patient p
+      JOIN BranchMaster b ON b.BranchId = p.BranchId
+      WHERE p.RegisteredOn >= {date_from} AND p.RegisteredOn < {date_to}
+      GROUP BY b.BranchName
+      ORDER BY NewPatients DESC
+    defaults: {period: "this month"}
+    chart: {type: bar, x: Branch, y: [NewPatients]}
+
+  - id: revenue_by_branch
+    scope: services
+    branch_compare: true
+    questions:
+      - "service revenue by branch {period}"
+      - "compare branches by revenue {period}"
+      - "which branch earned the most {period}"
+    sql: |
+      SELECT b.BranchName AS Branch, SUM(ISNULL(sp.Cost, 0)) AS Revenue
+      FROM ServicePrescription sp
+      JOIN BranchMaster b ON b.BranchId = sp.BranchId
+      JOIN Appointment a ON a.Id = sp.Appointment
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY b.BranchName
+      ORDER BY Revenue DESC
+    defaults: {period: "this month"}
+    chart: {type: bar, x: Branch, y: [Revenue]}

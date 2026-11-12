@@ -33,6 +33,31 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
+def _scoped_context(retriever, query: str, scope_tables: List[str]):
+    """Tables, metrics and few-shot examples restricted to an Ask AI section."""
+    import re
+
+    allowed = {t.lower() for t in scope_tables}
+    loader = retriever._loader
+    all_tables = loader.load_all_tables()
+    tables = [t for t in all_tables if t["table_name"].lower() in allowed]
+
+    metrics = [
+        m for m in retriever.retrieve_metrics(query)
+        if {d.lower() for d in m.get("table_dependencies", [])} <= allowed
+    ]
+
+    names = [t["table_name"] for t in all_tables]
+
+    def stays_in_scope(sql: str) -> bool:
+        used = {n.lower() for n in names if re.search(rf"\b{re.escape(n)}\b", sql, re.I)}
+        return bool(used) and used <= allowed
+
+    candidates = loader.load_few_shots(query, top_k=50)
+    few_shots = [ex for ex in candidates if stays_in_scope(ex.get("sql", ""))][:3]
+    return tables, metrics, few_shots
+
+
 def context_retriever_node(state: QueryAgentState) -> QueryAgentState:
     """
     LangGraph Node 2 — Semantic Context Retriever.
@@ -47,10 +72,16 @@ def context_retriever_node(state: QueryAgentState) -> QueryAgentState:
     retriever = get_retriever()
 
     try:
-        tables: List[RetrievedTable] = retriever.retrieve_tables(query)
-        metrics: List[SemanticDefinition] = retriever.retrieve_metrics(query)
+        scope_tables = state.get("scope_tables")
+        if scope_tables:
+            # Ask AI section chosen: use exactly its tables (few, so all of them),
+            # and only metrics / examples that stay inside those tables.
+            tables, metrics, few_shots = _scoped_context(retriever, query, scope_tables)
+        else:
+            tables: List[RetrievedTable] = retriever.retrieve_tables(query)
+            metrics: List[SemanticDefinition] = retriever.retrieve_metrics(query)
+            few_shots: List[FewShotExample] = retriever.retrieve_few_shots(query)
         joins: List[dict] = retriever.get_approved_joins(tables)
-        few_shots: List[FewShotExample] = retriever.retrieve_few_shots(query)
 
         logger.info(
             "[Node 2] Retrieved: tables=%d, metrics=%d, joins=%d, few_shots=%d",

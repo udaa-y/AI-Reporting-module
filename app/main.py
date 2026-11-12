@@ -8,17 +8,22 @@ startup/shutdown lifecycle events (DB pool warm-up, graph pre-load).
 """
 
 import logging
-import os
 import time
 
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 
+from app.api.routes.appointment_charts import router as appointment_charts_router
+from app.api.routes.assistant import router as assistant_router
+from app.api.routes.auth import router as auth_router
+from app.api.routes.dashboard import router as dashboard_router
 from app.api.routes.health import router as health_router
 from app.api.routes.query import router as query_router
+from app.api.routes.vanna import router as vanna_router
 from app.config import get_settings
+from app.security.auth import require_superadmin, require_user
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 
@@ -90,6 +95,12 @@ def create_app() -> FastAPI:
         except Exception as exc:
             logger.warning("[Startup] Graph pre-warm failed: %s", exc)
 
+        # Train Vanna from the semantic layer in the background (doesn't delay startup)
+        if settings.vanna_enabled:
+            import threading
+            from app.vanna_ai.engine import get_vanna_or_none
+            threading.Thread(target=get_vanna_or_none, name="vanna-warmup", daemon=True).start()
+
         # Pre-warm SQL Server connection pool
         try:
             from app.db.sqlserver import get_engine
@@ -113,14 +124,17 @@ def create_app() -> FastAPI:
             pass
 
     # ── Routers ───────────────────────────────────────────────────────────────
-    app.include_router(query_router)
-    app.include_router(health_router)
+    signed_in = [Depends(require_user)]
+    app.include_router(health_router)                                   # public
+    app.include_router(auth_router)                                     # public (login)
+    app.include_router(query_router, dependencies=[Depends(require_superadmin)])
+    app.include_router(dashboard_router, dependencies=signed_in)
+    app.include_router(appointment_charts_router, dependencies=signed_in)
+    app.include_router(assistant_router)                                # checks login per endpoint
+    app.include_router(vanna_router, dependencies=[Depends(require_superadmin)])
 
     @app.get("/", include_in_schema=False)
     async def root():
-        frontend_index = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "index.html"))
-        if os.path.exists(frontend_index):
-            return FileResponse(frontend_index)
         return {
             "service": settings.app_name,
             "version": "0.1.0",

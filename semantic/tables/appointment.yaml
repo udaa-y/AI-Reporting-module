@@ -39,4 +39,11 @@ columns:
   type: int
   IS_NULLABLE: 'YES'
   description: Column TPS_Id
-business_notes: Add domain-specific notes and filter rules here.
+- name: BranchId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Branch where this record belongs (BranchMaster.BranchId)  
+
+branch_column: BranchId           # filtered to the selected branch(es) automatically  
+business_notes: for a user query, never return any ID or TPS_Id column in the output. It is an internal identifier and should not be exposed to end users. Incase of returning a row, always return the Name column to identify the person. For example, for a doctor, return the Name column from the Employee table to identify the doctor. For a patient, return the Name column from the Patient table to identify the patient.
+

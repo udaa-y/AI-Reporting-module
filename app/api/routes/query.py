@@ -72,6 +72,7 @@ def _build_initial_state(req: QueryRequest) -> QueryAgentState:
         "last_db_error": None,
         "validation_result": None,
         "execution_result": None,
+        "sql_review": None,
         "nl_summary": None,
         "final_response": None,
         "error_message": None,
@@ -269,3 +270,76 @@ def ask_about_results(req: AskDataRequest):
     except Exception as exc:
         logger.exception("[API] Error answering data question: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Vanna AI analysis & feedback ───────────────────────────────────────────────
+
+class SessionRequest(BaseModel):
+    session_id: str = Field(..., description="Session ID of the query to analyse")
+    user_id: str = Field(default="anonymous")
+
+
+class FeedbackRequest(SessionRequest):
+    correct: bool = Field(..., description="Did the generated SQL answer the question correctly?")
+    comment: str = Field(default="", description="Optional note on what was wrong")
+
+
+def _last_result(session_id: str, user_id: str) -> dict:
+    snapshot = get_graph().get_state(_thread_config(session_id, user_id))
+    return (snapshot.values if snapshot else None) or {}
+
+
+@router.post("/insights")
+def query_insights(req: SessionRequest):
+    """
+    Vanna AI analysis of the session's latest result: KPIs, trends, comparisons,
+    drivers, anomalies, forecast, patient insights, recommendations and
+    follow-up questions. Called by the UI right after the results are shown.
+    """
+    from app.vanna_ai.analyst import generate_analysis
+
+    values = _last_result(req.session_id, req.user_id)
+    exec_result = values.get("execution_result") or {}
+    rows = exec_result.get("rows", [])
+    if not rows:
+        return JSONResponse({
+            "status": "error",
+            "message": "No result data found for this session. Run a query first.",
+        })
+
+    result = generate_analysis(
+        values.get("enriched_query") or values.get("raw_query", ""),  # includes clarifications
+        values.get("generated_sql", ""),
+        exec_result.get("columns", []),
+        rows,
+    )
+    return JSONResponse(jsonable_encoder({"status": "success", **result}))
+
+
+@router.post("/feedback")
+def query_feedback(req: FeedbackRequest):
+    """
+    Mark the session's latest SQL as correct (👍) or wrong (👎).
+
+    A 👍 teaches Vanna the question→SQL pair and saves it as a verified
+    few-shot example, so similar future questions are answered the same way.
+    """
+    values = _last_result(req.session_id, req.user_id)
+    # The clarified question is what the SQL actually answers.
+    question = values.get("enriched_query") or values.get("raw_query", "")
+    sql = values.get("generated_sql", "")
+    if not (question and sql and values.get("execution_result")):
+        return JSONResponse({"status": "error", "message": "No successful query found for this session."})
+
+    if not req.correct:
+        logger.info("[Feedback] SQL marked wrong — question=%r comment=%r sql=%s",
+                    question[:200], req.comment[:300], sql)
+        return JSONResponse({"status": "success", "learned": False})
+
+    from app.vanna_ai.training import learn_example
+    try:
+        learn_example(question, sql)
+    except Exception as exc:
+        logger.exception("[Feedback] Could not learn example: %s", exc)
+        return JSONResponse({"status": "error", "message": f"Could not save example: {str(exc)[:200]}"})
+    return JSONResponse({"status": "success", "learned": True})

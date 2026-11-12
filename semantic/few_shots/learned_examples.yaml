@@ -1,0 +1,11 @@
+version: v1
+examples:
+- question: how many appointments do we have till now
+  sql: "SELECT TOP 1000 \n    COUNT(a.Id) AS AppointmentCount\nFROM \n    dbo.Appointment\
+    \ a\nWHERE \n    YEAR(a.VisitDate) = YEAR(GETDATE())"
+  source: user_feedback
+- question: how many appointments do we have in total
+  sql: 'SELECT TOP 1000 COUNT(*) AS TotalAppointments
+
+    FROM dbo.Appointment a'
+  source: user_feedback

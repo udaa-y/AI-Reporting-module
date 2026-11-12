@@ -119,6 +119,14 @@ class QueryAgentState(TypedDict):
     nl_summary: Optional[str]               # Plain-English result summary
     final_response: Optional[Dict[str, Any]]
 
+    # ── Ask AI section (optional) ─────────────────────────────────
+    scope_key: Optional[str]                # e.g. "appointments" (app/assistant/scopes.py)
+    scope_tables: Optional[List[str]]       # Only these tables may be used
+
+    branch_ids: Optional[List[int]]                # Restrict every table to this branch (None = all)
+    base_sql: Optional[str]                 # Validated SQL before branch scoping
+
+
     # ── Pipeline Control ──────────────────────────────────────────
     error_message: Optional[str]            # Top-level error for user display
     pipeline_stage: str                     # Current node name (for logging)

@@ -39,4 +39,13 @@ columns:
   type: int
   IS_NULLABLE: 'YES'
   description: Column TPS_Id
-business_notes: Add domain-specific notes and filter rules here.
+- name: BranchId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Branch where this record belongs (BranchMaster.BranchId)  
+
+branch_column: BranchId           # filtered to the selected branch(es) automatically    
+
+branch_linked: "Id IN (SELECT PatientId FROM dbo.Appointment WHERE BranchId IN ({branch_ids}))"
+
+business_notes: for a user query, never return any ID or TPS_Id column in the output. It is an internal identifier and should not be exposed to end users.

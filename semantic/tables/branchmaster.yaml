@@ -1,0 +1,31 @@
+version: v1
+table: BranchMaster
+schema_name: dbo
+description: Clinic branches. Join any table on BranchId to get the branch name for branch-wise reports.
+columns:
+- name: BranchId
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Branch id (every table has a BranchId column pointing here)
+- name: BranchName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Branch name shown in reports
+- name: BranchCode
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Short branch code
+- name: BranchRegion
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Region the branch is in
+- name: BranchAddress
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: Street address
+- name: HQ_Branch
+  type: int
+  IS_NULLABLE: 'YES'
+  description: 1 = headquarters branch
+business_notes: Use BranchName (never BranchId) when showing or comparing branches.
+branch_column: BranchId

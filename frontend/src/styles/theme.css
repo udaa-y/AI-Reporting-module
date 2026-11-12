@@ -1,0 +1,64 @@
+/*
+ * Design tokens — the single place to change colours, spacing and type.
+ * Palette: dark blue (brand / text), light blue (accents / surfaces), white.
+ */
+:root {
+  /* Dark blues */
+  --navy-900: #071d3a;
+  --navy-800: #0b2e59;
+  --navy-700: #123f75;
+  --navy-600: #1a5296;
+
+  /* Light blues */
+  --sky-500: #2f8fe0;
+  --sky-400: #5aaaf0;
+  --sky-300: #7cc4fa;
+  --sky-200: #bfe3ff;
+  --sky-100: #e3f2ff;
+  --sky-50: #f3f9ff;
+
+  --white: #ffffff;
+
+  /* Semantic */
+  --color-bg: #f4f8fd;
+  --color-surface: var(--white);
+  --color-border: #dde8f5;
+  --color-text: #0f2440;
+  --color-text-muted: #5b6f8a;
+  --color-text-subtle: #8a9bb3;
+  --color-primary: var(--navy-800);
+  --color-accent: var(--sky-500);
+  --color-positive: #13865b;
+  --color-positive-bg: #e3f6ee;
+  --color-negative: #c2352b;
+  --color-negative-bg: #fdecea;
+  --color-neutral-bg: #eef2f7;
+
+  /* Type */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.875rem;
+
+  /* Shape & depth */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(11, 46, 89, 0.06);
+  --shadow-md: 0 4px 16px rgba(11, 46, 89, 0.08);
+  --shadow-lg: 0 12px 32px rgba(11, 46, 89, 0.12);
+
+  /* Layout */
+  --content-max-width: 1280px;
+  --page-gutter: 32px;
+  --header-height: 64px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --page-gutter: 16px;
+  }
+}

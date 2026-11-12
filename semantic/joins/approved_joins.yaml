@@ -42,4 +42,49 @@ approved_joins:
     aliases: {MedicinePrescription: "mp", Appointment: "a"}
     notes: "Connects appointment visits to medicine prescriptions."
 
+
+  # ── Branch names (for branch-wise and branch comparison reports) ──
+  - from_table: Appointment
+    to_table: BranchMaster
+    join_type: INNER JOIN
+    condition: "a.BranchId = b.BranchId"
+    aliases: {Appointment: "a", BranchMaster: "b"}
+    notes: "Branch of the appointment. Group by b.BranchName to compare branches."
+
+  - from_table: Patient
+    to_table: BranchMaster
+    join_type: INNER JOIN
+    condition: "p.BranchId = b.BranchId"
+    aliases: {Patient: "p", BranchMaster: "b"}
+    notes: "Branch where the patient registered."
+
+  - from_table: Employee
+    to_table: BranchMaster
+    join_type: INNER JOIN
+    condition: "e.BranchId = b.BranchId"
+    aliases: {Employee: "e", BranchMaster: "b"}
+    notes: "Branch the employee belongs to."
+
+  - from_table: ServicePrescription
+    to_table: BranchMaster
+    join_type: INNER JOIN
+    condition: "sr.BranchId = b.BranchId"
+    aliases: {ServicePrescription: "sr", BranchMaster: "b"}
+    notes: "Branch where the service was prescribed."
+
+  - from_table: MedicinePrescription
+    to_table: BranchMaster
+    join_type: INNER JOIN
+    condition: "mp.BranchId = b.BranchId"
+    aliases: {MedicinePrescription: "mp", BranchMaster: "b"}
+    notes: "Branch where the medicine was prescribed."
+
+  - from_table: Complaints
+    to_table: BranchMaster
+    join_type: INNER JOIN
+    condition: "c.BranchId = b.BranchId"
+    aliases: {Complaints: "c", BranchMaster: "b"}
+    notes: "Branch where the complaint was recorded."
+
+
   

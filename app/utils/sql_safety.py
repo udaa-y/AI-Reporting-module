@@ -20,7 +20,7 @@ Checks performed (in order):
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Optional, Set
+from typing import Dict, Optional, Sequence, Set
 
 import sqlglot
 import sqlglot.expressions as exp
@@ -209,3 +209,70 @@ def _inject_top_n(sql: str, parsed: exp.Select, max_rows: int) -> str:
         return injected
 
     return sql  # Fallback: return original if pattern fails
+
+
+
+# ── Branch scoping ────────────────────────────────────────────────────────────
+# Rules come from the semantic layer (table YAML: branch_column / branch_linked),
+# so new modules (insurance, billing…) are branch-aware just by declaring them.
+
+def _id_list(branch_ids: Sequence[int]) -> str:
+    ids = sorted({int(b) for b in branch_ids})      # int() guarantees only numbers are inlined
+    if not ids:
+        raise ValueError("No branch ids given.")
+    return ", ".join(str(i) for i in ids)
+
+
+def apply_branch_scope(sql: str, branch_ids: Sequence[int], rules: Dict[str, dict]) -> str:
+    """
+    Rewrite SQL so every branch-aware table only exposes the given branches:
+      FROM dbo.Appointment a  →  FROM (SELECT * FROM dbo.Appointment WHERE BranchId IN (3)) AS a
+    Works for joins, subqueries and CTEs, whatever SQL the LLM wrote — branch
+    isolation never depends on the model following instructions.
+    """
+    ids = _id_list(branch_ids)
+    tree = sqlglot.parse_one(sql, read="tsql")
+    cte_names = {c.alias_or_name.lower() for c in tree.find_all(exp.CTE)}
+
+    def scope(node):
+        rule = rules.get(node.name.lower()) if isinstance(node, exp.Table) else None
+        if rule and node.name.lower() not in cte_names:
+            condition = f"{rule['column']} IN ({ids})"
+            if rule.get("linked"):
+                condition += " OR " + rule["linked"].format(branch_ids=ids)
+            source = exp.Table(this=node.this.copy(),
+                               db=node.args["db"].copy() if node.args.get("db") else None)
+            inner = exp.select("*").from_(source).where(sqlglot.parse_one(condition, read="tsql"))
+            return exp.Subquery(this=inner, alias=exp.TableAlias(this=exp.to_identifier(node.alias_or_name)))
+        return node
+
+    return tree.transform(scope).sql(dialect="tsql")
+
+
+def add_branch_dimension(sql: str, rules: Dict[str, dict]) -> str:
+    """
+    Turn a single-branch query into a per-branch comparison: adds
+    BranchMaster.BranchName AS Branch (first column), groups and orders by it.
+    Used for Ask AI "Compare branches" on saved templates.
+    """
+    tree = sqlglot.parse_one(sql, read="tsql")
+    select = tree if isinstance(tree, exp.Select) else tree.find(exp.Select)
+    source = select.args.get("from_") or select.args.get("from")
+    main = source.this if source else None
+    if not isinstance(main, exp.Table) or main.name.lower() not in rules:
+        raise ValueError("This query's main table has no branch column, so it can't be compared by branch.")
+    alias = main.alias_or_name
+    column = rules[main.name.lower()]["column"]
+    branch = sqlglot.parse_one("cmp_br.BranchName", read="tsql")
+
+    select.set("limit", None)        # a top-N over all branches would hide whole branches
+    select.set("expressions", [exp.alias_(branch.copy(), "Branch")] + select.expressions)
+    select = select.join("BranchMaster AS cmp_br", on=f"cmp_br.BranchId = {alias}.{column}",
+                         join_type="left", dialect="tsql")
+    if select.args.get("group"):
+        select.args["group"].append("expressions", branch.copy())
+    elif any(select.find_all(exp.AggFunc)):
+        select = select.group_by(branch.copy())
+    if select.args.get("order"):
+        select.args["order"].set("expressions", [branch.copy()] + select.args["order"].expressions)
+    return select.sql(dialect="tsql")

@@ -19,6 +19,7 @@ Directory structure expected:
 import glob
 import logging
 import os
+import re
 from functools import lru_cache
 from typing import Any, Dict, List
 
@@ -213,28 +214,12 @@ class SemanticLoader:
 
     def load_few_shots(self, query: str = "", top_k: int = 3) -> List[FewShotExample]:
         """
-        Load all verified Q→SQL examples. If a query is provided,
-        return those whose keywords overlap most with the query.
+        Verified Q→SQL examples (from the query library templates in few_shots/*.yaml,
+        rendered for their default period). With a query, the closest ones first.
         """
         if self._few_shots is None:
-            raw = self._load_yaml_dir("few_shots")
-            self._few_shots = []
-            for item in raw:
-                examples = item.get("examples")
-                if isinstance(examples, list):
-                    for ex in examples:
-                        if isinstance(ex, dict) and ex.get("question"):
-                            self._few_shots.append({
-                                "question": ex.get("question", ""),
-                                "sql": ex.get("sql", ""),
-                                "tables_used": ex.get("tables_used", []),
-                            })
-                elif isinstance(item, dict) and item.get("question"):
-                    self._few_shots.append({
-                        "question": item.get("question", ""),
-                        "sql": item.get("sql", ""),
-                        "tables_used": item.get("tables_used", []),
-                    })
+            from app.assistant.library import get_library
+            self._few_shots = get_library().as_examples()
             logger.info("[SemanticLoader] Loaded %d few-shot examples.", len(self._few_shots))
 
         if not query or not self._few_shots:
@@ -251,6 +236,21 @@ class SemanticLoader:
         scored.sort(key=lambda x: x[0], reverse=True)
         return [ex for _, ex in scored[:top_k]]
 
+    # ── Branch rules ──────────────────────────────────────────────────────────
+
+    def load_branch_rules(self) -> Dict[str, Dict[str, Any]]:
+        """
+        {table (lower-case): {"column": "BranchId", "linked": "..."}} from each table
+        YAML's `branch_column` / `branch_linked`. Tables without `branch_column`
+        are never branch-filtered. New modules only need these two YAML keys.
+        """
+        rules = {}
+        for t in self._load_yaml_dir("tables"):
+            name = (t.get("table") or t.get("table_name") or "") if isinstance(t, dict) else ""
+            if name and t.get("branch_column"):
+                rules[name.lower()] = {"column": t["branch_column"], "linked": t.get("branch_linked")}
+        return rules
+
     # ── Synonyms ──────────────────────────────────────────────────────────────
 
     def load_synonyms(self) -> Dict[str, str]:
@@ -262,6 +262,26 @@ class SemanticLoader:
             if isinstance(mappings, dict):
                 result.update(mappings)
         return result
+
+    # ── Free-form documentation ───────────────────────────────────────────────
+
+    def load_documentation(self) -> List[str]:
+        """Return the text of every semantic/documentation/*.md file (business rules, glossary...)."""
+        docs = []
+        for filepath in sorted(glob.glob(os.path.join(self.base_dir, "documentation", "*.md"))):
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    # HTML comments hold authoring hints, not business knowledge.
+                    text = re.sub(r"<!--.*?-->", "", f.read(), flags=re.S).strip()
+                if text:
+                    docs.append(text)
+            except Exception as exc:
+                logger.warning("[SemanticLoader] Failed to load %s: %s", filepath, exc)
+        return docs
+
+    def reload(self) -> None:
+        """Drop cached definitions so the next load re-reads the YAML files."""
+        self._tables = self._metrics = self._joins = self._few_shots = None
 
     # ── Internal YAML loader ──────────────────────────────────────────────────
 
