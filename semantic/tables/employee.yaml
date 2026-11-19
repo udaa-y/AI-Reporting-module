@@ -10,19 +10,19 @@ columns:
 - name: Name
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column Name
+  description: Name of the employee. Column Name
 - name: Department
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column Department
+  description: Department to which the employee belongs. If Doctor, this would be the medical department, if its other staff, it would be mentioned as 'Administration'. Column Department
 - name: Type
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column Type
+  description: This column defines the type of employee. The values would be either 'Doctor' or 'Staff'. Column Type
 - name: Gender
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column Gender
+  description:  Gender of the employee. Column Gender
 - name: TPS_Id
   type: int
   IS_NULLABLE: 'YES'

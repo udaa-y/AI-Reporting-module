@@ -10,35 +10,35 @@ columns:
 - name: MedicineCode
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column MedicineCode
+  description: This is the code for the medicine that is prescribed to the patient. Column MedicineCode
 - name: MedicineName
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column MedicineName
+  description: Name of the medicine that is prescribed to the patient. Column MedicineName
 - name: MedicineType
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column MedicineType
+  description: Type of the medicine that is prescribed to the patient. Column values here would be mostly like 'Tablet', 'Bottle' etc. Column MedicineType
 - name: Quantity
   type: int
   IS_NULLABLE: 'YES'
-  description: Column Quantity
+  description: this is the quantity of the medicine prescribed to the patient. Column Quantity
 - name: UseType
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column UseType
+  description: This is the type of use for the medicine. Column values here would be mostly like 'Before Food', 'After Food' etc. Column UseType
 - name: Facility
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column Facility
+  description: This is the facility where the medicine is prescribed. Facility means the healthcare administration. The column values can be 'DHA', 'MOH', 'DOH', 'SHA' etc. Column Facility
 - name: Status
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column Status
+  description: This is the status of the medicine prescription. Column values here would be mostly like 'Active', 'Inactive' etc. Column Status
 - name: Manufacturer
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column Manufacturer
+  description: This is the manufacturer of the medicine. Column Manufacturer
 - name: Appointment
   type: int
   IS_NULLABLE: 'YES'

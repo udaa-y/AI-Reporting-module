@@ -13,6 +13,7 @@ export function useChat(enabled, branchId = null, compareBranchIds = []) {
   const [history, setHistory] = useState(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(null);
+  const [usage, setUsage] = useState(null);                 // { limit, used, remaining, resets_at }
   const conversationRef = useRef(null);
   conversationRef.current = conversation;
   const branchRef = useRef(branchId);
@@ -29,6 +30,13 @@ export function useChat(enabled, branchId = null, compareBranchIds = []) {
       setScopeState(list.some((s) => s.key === saved) ? saved : list[0]?.key ?? null);
     }).catch((e) => setError(e.message));
   }, [enabled, scopes.length]);
+
+
+    // AI questions left today: refreshed each time the panel opens, then from every answer.
+  useEffect(() => {
+    if (!enabled) return;
+    api.fetchUsage().then(setUsage).catch(() => {});
+  }, [enabled]);
 
   const setScope = useCallback((key) => {
     setScopeState(key);
@@ -56,6 +64,7 @@ export function useChat(enabled, branchId = null, compareBranchIds = []) {
   const receive = useCallback((result) => {
     setConversation(result.conversation);
     setMessages((ms) => [...ms.filter((m) => !m.optimistic), ...result.messages]);
+    if (result.usage) setUsage(result.usage);
     const reply = result.messages[result.messages.length - 1];
     if (reply?.payload?.status === "error") {
       // Shows the exact provider/database error (detail is included for admins).
@@ -134,7 +143,7 @@ export function useChat(enabled, branchId = null, compareBranchIds = []) {
   }, [patchMessage]);
 
   return {
-    scopes, scope, setScope, conversation, messages, history, pending, error,
+    scopes, scope, setScope, conversation, messages, history, pending, error, usage,
     ask, clarify, newChat, loadHistory, openConversation, removeConversation,
     feedback, explain: loadInsights,
   };

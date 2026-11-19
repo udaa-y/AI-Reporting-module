@@ -10,15 +10,15 @@ columns:
 - name: Complaint
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column Complaint
+  description: This is the complaint description that the patient has raised. Column Complaint
 - name: Appointment
   type: int
   IS_NULLABLE: 'YES'
-  description: Column Appointment
+  description: This is the appointment id for the complaint. This links the complaint to a specific appointment. Column Appointment
 - name: TPS_Id
   type: int
   IS_NULLABLE: 'YES'
-  description: Column TPS_Id
+  description: This is the internal identifier for the complaint. Column TPS_Id
 - name: BranchId
   type: int
   IS_NULLABLE: 'YES'

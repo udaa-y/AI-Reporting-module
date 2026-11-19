@@ -113,6 +113,10 @@ class Settings(BaseSettings):
     chat_max_conversations: int = 20        # Per user; older chats are deleted
     chat_max_messages: int = 50             # Per conversation
 
+    # ── Ask AI usage limit (AI-written answers only) ─────────────
+    ai_question_limit: int = 30             # AI questions per user per window (0 = unlimited)
+    ai_question_window_hours: int = 24      # Rolling window: a question frees up this many hours after it was asked
+
     # ── Agent ────────────────────────────────────────────────────
     max_sql_retries: int = 3
     max_result_rows: int = 1000

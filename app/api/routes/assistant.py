@@ -267,6 +267,9 @@ def _answer_from_template(match: Match, scope, branch_ids: Optional[List[int]], 
 def list_scopes(user: CurrentUser = Depends(require_user)):
     return {"scopes": scopes_for(user.role)}
 
+@router.get("/usage")
+def usage(user: CurrentUser = Depends(require_user)):
+    return store.ai_usage(user.id)
 
 @router.get("/conversations")
 def conversations(user: CurrentUser = Depends(require_user)):
@@ -335,6 +338,14 @@ def ask(req: AskRequest, user: CurrentUser = Depends(require_user)):
                        "suggestions": [{"template_id": m.template.id, "question": m.question_text()}
                                        for m in suggestions]}
             _answered_by["suggestions"] += 1
+        elif store.ai_usage(user.id)["remaining"] == 0:
+            # Daily AI limit reached: no LLM call. Saved (library) questions still work.
+            usage = store.ai_usage(user.id)
+            content = (f"You've used all {usage['limit']} AI questions for the last "
+                       f"{usage['window_hours']} hours. Saved questions still work — pick one of the "
+                       f"suggestions, or ask again once your limit resets.")
+            payload = {"status": "limit", "scope": scope.key, "resets_at": usage["resets_at"]}
+            _answered_by["limit"] += 1
         else:
             hint = ""
             if compare:
@@ -344,6 +355,9 @@ def ask(req: AskRequest, user: CurrentUser = Depends(require_user)):
             content, payload = _run(_initial_state(user, conv["id"], question, scope, branch_ids, hint),
                                     _thread(user, conv["id"]), question, scope.key, user.is_admin)
             _answered_by["llm"] += 1
+            # Count it unless the AI provider itself failed (no credits, bad key, outage…).
+            if not str(payload.get("error_code") or "").startswith("llm_"):
+                store.record_ai_question(user.id, question)
 
     payload.update(branch_ids=branch_ids, compare=compare)
     if payload.get("status") == "success":
@@ -351,7 +365,8 @@ def ask(req: AskRequest, user: CurrentUser = Depends(require_user)):
         payload["related"] = library.related(question, scope.key, can_compare,
                                              exclude=payload.get("template_id"), period=period)
     reply = store.add_message(conv["id"], "assistant", content, payload)
-    return {"conversation": {**conv, "scope": scope.key}, "messages": [user_msg, reply]}
+    return {"conversation": {**conv, "scope": scope.key}, "messages": [user_msg, reply],
+            "usage": store.ai_usage(user.id)}
 
 
 def _branch_names(ids: Optional[List[int]]) -> List[dict]:

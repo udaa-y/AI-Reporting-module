@@ -10,27 +10,27 @@ columns:
 - name: VisitDate
   type: date
   IS_NULLABLE: 'YES'
-  description: Column VisitDate
+  description: this is the date of the appointment for the patient. Column VisitDate
 - name: PatientId
   type: int
   IS_NULLABLE: 'YES'
-  description: Column PatientId
+  description: this is the patient id for the appointment that comes from the Patient table. Column PatientId
 - name: DoctorId
   type: int
   IS_NULLABLE: 'YES'
-  description: Column DoctorId
+  description: this is the doctor id for the appointment that comes from the Employee table. This column helps in identifying which doctor is assigned to the appointment. Column DoctorId
 - name: VisitStatus
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column VisitStatus
+  description: this column shows the status of the appointment. The column values would be either 'completed', 'cancelled', or 'pending'. Column VisitStatus
 - name: PatientType
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column PatientType
+  description: This defines whether the patient is a new patient or a follow up patient. The column values would be either 'New' or 'Follow-up'. Column PatientType
 - name: ParentAppointment
   type: int
   IS_NULLABLE: 'YES'
-  description: Column ParentAppointment
+  description: this is the parent appointment id for the appointment. This is for tracking related appointments like follow-up appointments. Column ParentAppointment
 - name: eRxReferenceNumber
   type: varchar
   IS_NULLABLE: 'YES'

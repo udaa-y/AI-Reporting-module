@@ -275,6 +275,7 @@ for canonical, words in {
     "service": "service services procedure procedures test tests",
     "medicine": "medicine medicines medication medications drug drugs prescription prescriptions",
     "complaint": "complaint complaints symptom symptoms",
+    "diagnosis": "diagnosis diagnoses diagnosed diagnose diagnostic diagnostics dx condition conditions illness illnesses disease diseases icd",
     "average": "average avg mean",
     "previous": "previous prior preceding earlier",
 }.items():

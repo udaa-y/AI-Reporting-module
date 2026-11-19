@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   AlertCircle, AlertTriangle, BarChart3, CalendarRange, CheckCircle2, Download, GitCompare,
-  HelpCircle, Info, RefreshCw, Sparkles, Table2, ThumbsDown, ThumbsUp, Zap,
+  HelpCircle, Info, RefreshCw, Sparkles, Table2, ThumbsDown, ThumbsUp, Zap, Gauge,
 } from "lucide-react";
 
 import AnswerChart, { pickChart } from "./AnswerChart.jsx";
@@ -196,6 +196,10 @@ export default function ChatMessage({ message, isLast, question, onAsk, onClarif
 
       {p.status === "info" && (
         <p className="chat-info"><Info size={15} aria-hidden="true" /> {message.content}</p>
+      )}
+
+      {p.status === "limit" && (
+        <p className="chat-info is-limit"><Gauge size={15} aria-hidden="true" /> {message.content}</p>
       )}
 
       {p.status === "clarification_needed" && (

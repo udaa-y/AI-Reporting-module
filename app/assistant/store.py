@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import delete, func, insert, select, update
 
 from app.config import get_settings
-from app.db.app_tables import chat_conversation, chat_message
+from app.db.app_tables import ai_question_usage, chat_conversation, chat_message
 from app.db.sqlserver import get_db_session
 
 settings = get_settings()
@@ -146,3 +146,30 @@ def update_message(message_id: int, content: str, payload: Dict[str, Any]) -> No
     with get_db_session() as s:
         s.execute(update(chat_message).where(chat_message.c.Id == message_id).values(
             Content=content, Payload=json.dumps(payload, default=str)))
+
+
+# ── AI question limit ─────────────────────────────────────────────────────────
+
+def ai_usage(login_id: int) -> dict:
+    """How many LLM-answered questions this user has left in the rolling window."""
+    limit, hours = settings.ai_question_limit, settings.ai_question_window_hours
+    if limit <= 0:
+        return {"limit": 0, "used": 0, "remaining": None, "window_hours": hours, "resets_at": None}
+    since = _now() - dt.timedelta(hours=hours)
+    with get_db_session() as s:
+        times = [r[0] for r in s.execute(
+            select(ai_question_usage.c.AskedAt)
+            .where(ai_question_usage.c.LoginId == login_id, ai_question_usage.c.AskedAt >= since)
+            .order_by(ai_question_usage.c.AskedAt)
+        )]
+    used = len(times)
+    # When the limit is reached, the next question frees up when the oldest one leaves the window.
+    resets_at = times[used - limit] + dt.timedelta(hours=hours) if used >= limit else None
+    return {"limit": limit, "used": min(used, limit), "remaining": max(limit - used, 0),
+            "window_hours": hours, "resets_at": _iso(resets_at)}
+
+
+def record_ai_question(login_id: int, question: str) -> None:
+    with get_db_session() as s:
+        s.execute(insert(ai_question_usage).values(LoginId=login_id, Question=question[:1000], AskedAt=_now()))
+        

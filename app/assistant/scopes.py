@@ -121,6 +121,21 @@ SCOPES: List[Scope] = [
         ),
         
     ),
+
+    Scope(
+        key="diagnosis",
+        label="Diagnosis",
+        description="Diagnoses recorded at visits: codes, names and types",
+        tables=("diagnosisPrescription", "Appointment", "Patient", "Employee"),
+        roles=("admin", "staff"),            # drop "staff" to keep it admin-only
+        icon="Activity",
+        starters=(
+            "What were the 10 most common diagnoses last month?",
+            "How many diagnoses were recorded each month this year?",
+            "Which doctors recorded the most diagnoses this month?",
+        ),
+        compare_starters=("Top diagnoses by branch this month",),
+    ),
 ]
 
 _BY_KEY = {s.key: s for s in SCOPES}

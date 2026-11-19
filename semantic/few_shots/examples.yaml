@@ -161,9 +161,9 @@ templates:
       - "cancelled appointments {period}"
       - "cancellation rate {period}"
     sql: |
-      SELECT SUM(CASE WHEN a.VisitStatus LIKE '%cancel%' THEN 1 ELSE 0 END) AS Cancelled,
+      SELECT SUM(CASE WHEN a.VisitStatus LIKE '%Cancelled%' THEN 1 ELSE 0 END) AS Cancelled,
              COUNT(*) AS Appointments,
-             CAST(100.0 * SUM(CASE WHEN a.VisitStatus LIKE '%cancel%' THEN 1 ELSE 0 END)
+             CAST(100.0 * SUM(CASE WHEN a.VisitStatus LIKE '%Cancelled%' THEN 1 ELSE 0 END)
                   / NULLIF(COUNT(*), 0) AS DECIMAL(5, 1)) AS CancelledPct
       FROM Appointment a
       WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
@@ -459,3 +459,20 @@ templates:
       ORDER BY Revenue DESC
     defaults: {period: "this month"}
     chart: {type: bar, x: Branch, y: [Revenue]}
+
+
+
+  - id: top_diagnoses
+    scope: [diagnosis]
+    questions:
+      - "top {top_n} diagnoses {period}"
+      - "most common diagnosis {period}"
+    sql: |
+      SELECT TOP {top_n} dp.DiagnosisName AS Diagnosis, COUNT(*) AS Cases
+      FROM diagnosisPrescription dp
+      JOIN Appointment a ON a.Id = dp.AppointmentId
+      WHERE a.VisitDate >= {date_from} AND a.VisitDate < {date_to}
+      GROUP BY dp.DiagnosisName
+      ORDER BY Cases DESC
+    defaults: {period: "this month", top_n: 10}
+    chart: {type: horizontal_bar, x: Diagnosis, y: [Cases]}    

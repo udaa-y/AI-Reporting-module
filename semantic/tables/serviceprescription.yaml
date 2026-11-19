@@ -10,35 +10,35 @@ columns:
 - name: ServiceCode
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column ServiceCode
+  description: This is the code of the service that is prescribed. Column ServiceCode
 - name: ServiceName
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column ServiceName
+  description: This is the name of the service that is prescribed. Column ServiceName
 - name: ServiceType
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column ServiceType
+  description: This is the type of the service that is prescribed. The column values here can be 'Insurance', 'Cash','Company' etc. Column ServiceType
 - name: Quantity
   type: int
   IS_NULLABLE: 'YES'
-  description: Column Quantity
+  description: This is the quantity of the service that is prescribed. Column Quantity
 - name: Cost
   type: decimal
   IS_NULLABLE: 'YES'
-  description: Column Cost
+  description: This is the cost of the service that is prescribed. Column Cost
 - name: Facility
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column Facility
+  description: This is the facility where the service is prescribed. Facility means the healthcare administration. The column values can be 'DHA', 'MOH', 'DOH', 'SHA' etc. Column Facility
 - name: Appointment
   type: int
   IS_NULLABLE: 'YES'
-  description: Column Appointment
+  description: This is the appointment id for the service prescription. Column Appointment
 - name: TPS_Id
   type: int
   IS_NULLABLE: 'YES'
-  description: Column TPS_Id
+  description: This is the internal identifier for the service prescription. Column TPS_Id
 - name: BranchId
   type: int
   IS_NULLABLE: 'YES'

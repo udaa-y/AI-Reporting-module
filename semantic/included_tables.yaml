@@ -15,7 +15,10 @@ tables:
     description: "Stores services prescribed or performed during appointments, including service code, name, type, quantity, cost, facility, appointment reference, and TPS identifier."
 
   - name: MedicinePrescription
-    description: "Contains department details including DepartmentId, Title, and Description."
+    description: "Contains medicine details including MedicineId, Medicine code, Medicine name, Quantity, and other relevant information."
+
+  - name: diagnosisPrescription
+    description: "Contains diagnosis details including DiagnosisId, Diagnosis code, Diagnosis name, and Diagnosis type etc."
 
   - name: BranchMaster
     description: "Clinic branches (name, code, region, HQ flag). Join on BranchId for branch-wise reports."

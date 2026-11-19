@@ -62,6 +62,32 @@ def test_llm_failure_reaches_the_chat_with_code(client, pipeline, monkeypatch): 
     reply = client.post("/assistant/ask", json={"force_llm": True, "scope": "appointments", "question": "How many visits?"}).json()["messages"][1]
     assert reply["payload"]["error_code"] == "llm_credits" and "detail" not in reply["payload"]
 
+def test_ai_question_limit(client, pipeline, monkeypatch):  # noqa: F811
+    from app.assistant import store
+    import app.agent.nodes.sql_generator as sg
+    monkeypatch.setattr(store.settings, "ai_question_limit", 2)
+    login(client, "reception")
+    ask = lambda q, **kw: client.post("/assistant/ask", json={"scope": "appointments", "question": q, **kw}).json()
+
+    assert client.get("/assistant/usage").json()["remaining"] == 2
+    first = ask("How many visits?", force_llm=True)
+    assert first["usage"]["used"] == 1 and first["usage"]["remaining"] == 1
+
+    real = sg.get_sql_llm
+    class Broke:
+        def invoke(self, _):
+            raise _status_error(openai.APIStatusError, 402, "This request requires more credits")
+    monkeypatch.setattr(sg, "get_sql_llm", lambda: Broke())
+    assert ask("How many visits?", force_llm=True)["usage"]["used"] == 1     # provider failure: not counted
+    monkeypatch.setattr(sg, "get_sql_llm", real)
+
+    second = ask("How many visits?", force_llm=True)
+    assert second["usage"]["remaining"] == 0 and second["usage"]["resets_at"]
+    blocked = ask("How many visits?", force_llm=True)
+    assert blocked["messages"][1]["payload"]["status"] == "limit" and len(pipeline["prompts"]) == 2
+    library = ask("Which doctors saw the most patients last month?")         # saved questions still work
+    assert library["messages"][1]["payload"]["source"] == "library"
+    assert library["usage"]["remaining"] == 0
 
 ROWS = [{"Doctor": f"Dr {i}", "Department": "ENT" if i % 2 else "Cardio", "Appointments": 10 * i, "Revenue": 1000.5 * i}
         for i in range(1, 10)]

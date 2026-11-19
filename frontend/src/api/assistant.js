@@ -24,3 +24,5 @@ export const fetchInsights = (messageId) => apiPost(`/assistant/messages/${messa
 
 export const sendFeedback = (messageId, correct) =>
   apiPost(`/assistant/messages/${messageId}/feedback`, { correct });
+
+export const fetchUsage = () => apiGet("/assistant/usage");   // AI questions left

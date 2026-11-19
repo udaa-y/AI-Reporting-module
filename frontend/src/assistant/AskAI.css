@@ -744,3 +744,23 @@
   width: 100%; margin-top: 6px; padding: 6px; border: 0; border-radius: 6px;
   background: var(--navy-800); color: var(--white); font-size: var(--text-xs); font-weight: 600;
 }
+
+
+/* AI questions left */
+.askai__usage { margin-bottom: 8px; }
+.askai__usage-text {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;
+  color: var(--color-text-muted); font-size: 11px;
+}
+.askai__usage-text span { display: inline-flex; align-items: center; gap: 4px; }
+.askai__usage-text strong { color: var(--navy-800); }
+.askai__usage-track { height: 5px; border-radius: 999px; background: var(--sky-50); overflow: hidden; }
+.askai__usage-track span {
+  display: block; height: 100%; border-radius: inherit; background: var(--sky-500); transition: width 0.4s ease;
+}
+.askai__usage.is-low .askai__usage-track span { background: #e0a100; }
+.askai__usage.is-low .askai__usage-text strong { color: #a87600; }
+.askai__usage.is-empty .askai__usage-track span { background: var(--color-negative); }
+.askai__usage.is-empty .askai__usage-text strong { color: var(--color-negative); }
+.chat-info svg { flex-shrink: 0; margin-top: 2px; }
+.chat-info.is-limit { color: #8a5a00; }

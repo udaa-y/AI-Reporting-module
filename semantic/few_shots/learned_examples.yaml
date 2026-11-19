@@ -1,11 +1,20 @@
-version: v1
-examples:
-- question: how many appointments do we have till now
-  sql: "SELECT TOP 1000 \n    COUNT(a.Id) AS AppointmentCount\nFROM \n    dbo.Appointment\
-    \ a\nWHERE \n    YEAR(a.VisitDate) = YEAR(GETDATE())"
-  source: user_feedback
-- question: how many appointments do we have in total
+# Added automatically from 👍 feedback in Ask AI. Safe to edit or delete entries.
+version: v2
+templates:
+- id: learned_abda490ea5
+  scope: '*'
+  questions:
+  - how many appointments do we have till now
+  sql: "SELECT TOP 1000 \n    COUNT(a.Id) AS AppointmentCount\nFROM \n    dbo.Appointment a\nWHERE \n    YEAR(a.VisitDate) = YEAR(GETDATE())"
+- id: learned_feff60bfd3
+  scope: '*'
+  questions:
+  - how many appointments do we have in total
   sql: 'SELECT TOP 1000 COUNT(*) AS TotalAppointments
 
     FROM dbo.Appointment a'
-  source: user_feedback
+- id: learned_d0b1a4592d
+  scope: patients
+  questions:
+  - how many new male and female patients do we have. across all branches
+  sql: "SELECT \n    TOP 1000 p.Gender, \n    COUNT(DISTINCT p.Id) AS NewPatientCount\nFROM \n    dbo.Patient p\nINNER JOIN \n    dbo.Appointment a ON p.Id = a.PatientId\nWHERE \n    a.PatientType = 'New'\nGROUP BY \n    p.Gender"

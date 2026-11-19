@@ -60,3 +60,12 @@ chat_message = Table(
     Column("Payload", UnicodeText, nullable=True),         # JSON: SQL, rows, review, insights…
     Column("CreatedAt", DateTime, nullable=False),
 )
+
+
+ai_question_usage = Table(
+    "AiQuestionUsage", metadata,                         # one row per question the LLM answered
+    Column("Id", BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True),
+    Column("LoginId", Integer, ForeignKey(f"{APP_SCHEMA}.EmployeeLogin.Id"), nullable=False),
+    Column("Question", UnicodeText, nullable=False),
+    Column("AskedAt", DateTime, nullable=False),
+)

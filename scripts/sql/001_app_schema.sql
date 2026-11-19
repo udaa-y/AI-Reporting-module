@@ -61,6 +61,16 @@ CREATE TABLE app.ChatMessage (
 CREATE INDEX IX_ChatMessage_Conversation ON app.ChatMessage (ConversationId, Id);
 GO
 
+
+
+CREATE TABLE app.AiQuestionUsage (
+    Id        BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_AiQuestionUsage PRIMARY KEY,
+    LoginId   INT            NOT NULL CONSTRAINT FK_AiQuestionUsage_Login REFERENCES app.EmployeeLogin(Id),
+    Question  NVARCHAR(MAX)  NOT NULL,
+    AskedAt   DATETIME2(0)   NOT NULL
+);
+CREATE INDEX IX_AiQuestionUsage_Login_AskedAt ON app.AiQuestionUsage (LoginId, AskedAt);
+
 /* ── Permissions ─────────────────────────────────────────────────────────────
    Replace [your_app_user] with the SQL login/user in your .env (SQLSERVER_USER).
    The app writes ONLY to the app schema; clinic data in dbo stays read-only.

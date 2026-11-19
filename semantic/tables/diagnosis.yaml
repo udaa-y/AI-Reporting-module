@@ -1,0 +1,37 @@
+version: v1
+table: diagnosisprescription
+schema_name: dbo
+description: Table diagnosisprescription in dbo schema. This table contains diagnosis details including DiagnosisId, Diagnosis code, Diagnosis name, and Diagnosis type etc.
+columns:
+- name: Id
+  type: int
+  IS_NULLABLE: 'NO'
+  description: Column Id
+- name: DiagnosisCode
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: This is the diagnosis code for the diagnosis. It specifies the unique identifier for each diagnosis. Column DiagnosisCode
+- name: DiagnosisName
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: This is the diagnosis name for the diagnosis. It provides a human-readable label for each diagnosis. Column DiagnosisName
+- name: DiagnosisType
+  type: varchar
+  IS_NULLABLE: 'YES'
+  description: This is the type of the diagnosis. It categorizes the diagnosis whether it is a primary or secondary type of diagnosis. Column DiagnosisType
+- name: Appointment
+  type: int
+  IS_NULLABLE: 'YES'
+  description: This is the appointment id for the diagnosis. This links the diagnosis to a specific appointment. Column Appointment
+- name: TPS_Id
+  type: int
+  IS_NULLABLE: 'YES'
+  description: This is the internal identifier for the diagnosis. Column TPS_Id
+- name: BranchId
+  type: int
+  IS_NULLABLE: 'YES'
+  description: Branch where this record belongs (BranchMaster.BranchId)  
+
+branch_column: BranchId           # filtered to the selected branch(es) automatically  
+branch_linked: "Id IN (SELECT Appointment FROM dbo.Complaints WHERE BranchId IN ({branch_ids}))"
+business_notes: for a user query, never return any ID or TPS_Id column in the output. It is an internal identifier and should not be exposed to end users.

@@ -87,4 +87,21 @@ approved_joins:
     notes: "Branch where the complaint was recorded."
 
 
+
+  - from_table: Appointment
+    to_table: diagnosisPrescription
+    join_type: LEFT JOIN
+    condition: "a.Id = dp.AppointmentId"
+    aliases: {diagnosisPrescription: "dp", Appointment: "a"}
+    notes: "Diagnoses recorded at each appointment. Join through Appointment to reach Patient (a.PatientId) and the doctor (a.DoctorId → Employee)."
+
+  - from_table: diagnosisPrescription
+    to_table: BranchMaster
+    join_type: INNER JOIN
+    condition: "dp.BranchId = b.BranchId"
+    aliases: {diagnosisPrescription: "dp", BranchMaster: "b"}
+    notes: "Branch where the diagnosis was recorded."
+
+
+
   

@@ -10,35 +10,35 @@ columns:
 - name: Name
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column Name
-- name: MRNNumber
+  description: This is the name of the patient. Column Name
+- name: FileNo
   type: int
   IS_NULLABLE: 'YES'
-  description: Column MRNNumber
+  description: This is the file number of the patient. Column FileNo
 - name: RegisteredOn
   type: date
   IS_NULLABLE: 'YES'
-  description: Column RegisteredOn
+  description: When the patient was registered in the system. Column RegisteredOn
 - name: DateOfBirth
   type: date
   IS_NULLABLE: 'YES'
-  description: Column DateOfBirth
+  description: When the patient was born. Column DateOfBirth
 - name: Gender
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column Gender
+  description: This is the gender of the patient. Column Gender
 - name: Nationality
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column Nationality
+  description: This gives the nationality of the patient. For queries, this column helps in filtering patients based on their nationality. Column Nationality
 - name: ResidencyType
   type: varchar
   IS_NULLABLE: 'YES'
-  description: Column ResidencyType
+  description: This is the type of residency for the patient. Column ResidencyType
 - name: TPS_Id
   type: int
   IS_NULLABLE: 'YES'
-  description: Column TPS_Id
+  description: This is the internal identifier for the patient. Column TPS_Id
 - name: BranchId
   type: int
   IS_NULLABLE: 'YES'

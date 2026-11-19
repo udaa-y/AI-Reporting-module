@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowUp, Building2, CalendarCheck, Check, ChevronLeft, ClipboardList, GitCompare, History,
-  MessageSquare, MessageSquarePlus, Pill, Sparkles, Stethoscope, Trash2, Users, X,
+  MessageSquare, MessageSquarePlus, Pill, Sparkles, Stethoscope, Trash2, Users, X, Gauge, Activity,
 } from "lucide-react";
 
 import { useAuth } from "../auth/AuthContext.jsx";
@@ -21,11 +21,39 @@ function timeAgo(iso) {
 }
 
 // Icon names used by sections in app/assistant/scopes.py — add new ones here.
-const SCOPE_ICONS = { CalendarCheck, Stethoscope, Pill, Users, Building2, ClipboardList, MessageSquare };
+const SCOPE_ICONS = { CalendarCheck, Stethoscope, Pill, Users, Building2, ClipboardList, MessageSquare, Activity };
 
 function ScopeIcon({ name, size = 14 }) {
   const Icon = SCOPE_ICONS[name] || MessageSquare;
   return <Icon size={size} aria-hidden="true" />;
+}
+
+/** "AI questions left" bar. Saved (verified) questions are free and not counted. */
+function UsageBar({ usage }) {
+  if (!usage || !usage.limit) return null;              // limit 0 = unlimited: no bar
+  const left = usage.remaining;
+  const level = left === 0 ? " is-empty" : left <= Math.max(3, usage.limit * 0.2) ? " is-low" : "";
+  const resets = usage.resets_at
+    ? new Date(usage.resets_at).toLocaleString([], { weekday: "short", hour: "2-digit", minute: "2-digit" })
+    : null;
+  return (
+    <div
+      className={`askai__usage${level}`}
+      title={`AI-written answers in the last ${usage.window_hours} hours. Verified (saved) answers don't count.`}
+    >
+      <div className="askai__usage-text">
+        <span><Gauge size={12} aria-hidden="true" /> AI questions</span>
+        <span>
+          <strong>{left}</strong> of {usage.limit} left
+          {left === 0 && resets ? ` · next at ${resets}` : ""}
+        </span>
+      </div>
+      <div className="askai__usage-track" role="progressbar" aria-label="AI questions used"
+           aria-valuemin={0} aria-valuemax={usage.limit} aria-valuenow={usage.used}>
+        <span style={{ width: `${(usage.used / usage.limit) * 100}%` }} />
+      </div>
+    </div>
+  );
 }
 
 /** Super Admin: pick 2+ branches to compare side by side in Ask AI answers. */
@@ -244,6 +272,7 @@ export default function AskAI() {
             </div>
 
             <form className="askai__composer" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+              <UsageBar usage={chat.usage} />
               {current && !awaitingClarification && (
                 <div className="askai__contexts">
                   <span className="askai__context"><ScopeIcon name={current.icon} size={12} /> {current.label}</span>
