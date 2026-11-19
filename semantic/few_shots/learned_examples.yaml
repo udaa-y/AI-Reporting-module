@@ -18,3 +18,16 @@ templates:
   questions:
   - how many new male and female patients do we have. across all branches
   sql: "SELECT \n    TOP 1000 p.Gender, \n    COUNT(DISTINCT p.Id) AS NewPatientCount\nFROM \n    dbo.Patient p\nINNER JOIN \n    dbo.Appointment a ON p.Id = a.PatientId\nWHERE \n    a.PatientType = 'New'\nGROUP BY \n    p.Gender"
+- id: learned_d9dd50fd99
+  scope: doctors
+  questions:
+  - get me the list of doctors having the most appointments
+  sql: 'SELECT TOP 1000 e.Name AS Doctor, COUNT(*) AS Appointments
+
+    FROM Appointment a
+
+    JOIN Employee e ON e.Id = a.DoctorId
+
+    GROUP BY e.Name
+
+    ORDER BY Appointments DESC'

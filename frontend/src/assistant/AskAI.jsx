@@ -56,36 +56,60 @@ function UsageBar({ usage }) {
   );
 }
 
-/** Super Admin: pick 2+ branches to compare side by side in Ask AI answers. */
-function ComparePicker({ branches, value, onChange }) {
+/**
+ * Super Admin: which branches Ask AI answers for.
+ *   value [] (all ticked) → combined data · one id → that branch only · 2+ ids → side-by-side comparison
+ */
+function BranchPicker({ branches, value, onChange }) {
   const [open, setOpen] = useState(false);
-  const toggle = (id) => onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id]);
-  const active = value.length >= 2;
+  const all = value.length === 0;
+  const ticked = all ? branches.map((b) => b.id) : value;
+  const set = (ids) => onChange(ids.length >= branches.length ? [] : ids);   // every branch ticked = all
+  const toggle = (id) => {
+    const next = ticked.includes(id) ? ticked.filter((v) => v !== id) : [...ticked, id];
+    if (next.length) set(next);                                              // keep at least one ticked
+  };
+  const one = value.length === 1 ? branches.find((b) => b.id === value[0]) : null;
+  const label = all ? "All branches" : one ? one.name : `Comparing ${value.length} branches`;
+  const mode = all ? ""
+    : one ? ``
+      : "";
   return (
     <span className="askai__compare">
       <button
-        type="button" className={`askai__context is-compare${active ? " is-on" : ""}`}
-        onClick={() => setOpen((o) => !o)} aria-expanded={open}
+        type="button" className={`askai__context is-compare${all ? "" : " is-on"}`}
+        onClick={() => setOpen((o) => !o)} aria-expanded={open} title={mode}
       >
-        <GitCompare size={12} aria-hidden="true" />
-        {active ? `Comparing ${value.length} branches` : "Compare branches"}
+        {value.length >= 2 ? <GitCompare size={12} aria-hidden="true" /> : <Building2 size={12} aria-hidden="true" />}
+        {label}
       </button>
-      {active && (
-        <button type="button" className="askai__compare-clear" onClick={() => onChange([])} aria-label="Stop comparing">
+      {!all && (
+        <button type="button" className="askai__compare-clear" onClick={() => onChange([])} aria-label="Back to all branches">
           <X size={12} />
         </button>
       )}
       {open && (
-        <div className="askai__compare-panel" role="listbox" aria-multiselectable="true">
-          <p className="chat-muted">Pick two or more branches</p>
+        <div className="askai__compare-panel" role="listbox" aria-multiselectable="true" aria-label="Branches">
+          
+          <button type="button" role="option" aria-selected={all}
+                  className={`askai__compare-option${all ? " is-selected" : ""}`} onClick={() => onChange([])}>
+            <span className="askai__compare-check">{all && <Check size={11} strokeWidth={3} />}</span>
+            All branches
+          </button>
+          <div className="askai__compare-divider" />
           {branches.map((b) => (
-            <button key={b.id} type="button" role="option" aria-selected={value.includes(b.id)}
-                    className={`askai__compare-option${value.includes(b.id) ? " is-selected" : ""}`}
-                    onClick={() => toggle(b.id)}>
-              <span className="askai__compare-check">{value.includes(b.id) && <Check size={11} strokeWidth={3} />}</span>
-              {b.name}
-            </button>
+            <div key={b.id} className="askai__compare-row">
+              <button type="button" role="option" aria-selected={ticked.includes(b.id)}
+                      className={`askai__compare-option${ticked.includes(b.id) ? " is-selected" : ""}`}
+                      onClick={() => toggle(b.id)}>
+                <span className="askai__compare-check">{ticked.includes(b.id) && <Check size={11} strokeWidth={3} />}</span>
+                {b.name}
+              </button>
+              <button type="button" className="askai__compare-only" onClick={() => set([b.id])}
+                      title={`Only ${b.name}`}>only</button>
+            </div>
           ))}
+          <p className="askai__compare-mode">{mode}</p>
           <button type="button" className="askai__compare-done" onClick={() => setOpen(false)}>Done</button>
         </div>
       )}
@@ -100,9 +124,15 @@ export default function AskAI() {
   const [view, setView] = useState("chat");             // "chat" | "history"
   const [text, setText] = useState("");
   const { branchId, current: currentBranch, branches, canSwitch } = useBranch();
-  const [compareIds, setCompareIds] = useState([]);
-  const comparing = canSwitch && compareIds.length >= 2;
-  const chat = useChat(open && Boolean(user), branchId, comparing ? compareIds : []);
+
+  // Super Admin's Ask AI branches: [] = all, [id] = that branch only, 2+ = compare.
+  // Starts from the branch picked in the top bar and follows it when that changes.
+  const [pickedIds, setPickedIds] = useState([]);
+  useEffect(() => setPickedIds(branchId === null ? [] : [branchId]), [branchId]);
+  const picked = canSwitch ? pickedIds.filter((id) => branches.some((b) => b.id === id)) : [];
+  const comparing = picked.length >= 2;
+  const askBranchId = !canSwitch ? branchId : picked.length === 1 ? picked[0] : null;
+  const chat = useChat(open && Boolean(user), askBranchId, comparing ? picked : []);
   const listRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -276,13 +306,12 @@ export default function AskAI() {
               {current && !awaitingClarification && (
                 <div className="askai__contexts">
                   <span className="askai__context"><ScopeIcon name={current.icon} size={12} /> {current.label}</span>
-                  {!comparing && (
+                  {canSwitch && branches.length > 1 ? (
+                    <BranchPicker branches={branches} value={picked} onChange={setPickedIds} />
+                  ) : (
                     <span className="askai__context is-branch">
                       <Building2 size={12} aria-hidden="true" /> {branchId === null ? "All branches" : currentBranch?.name ?? "Your branch"}
                     </span>
-                  )}
-                  {canSwitch && branches.length > 1 && (
-                    <ComparePicker branches={branches} value={compareIds} onChange={setCompareIds} />
                   )}
                 </div>
               )}

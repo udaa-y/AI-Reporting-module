@@ -764,3 +764,14 @@
 .askai__usage.is-empty .askai__usage-text strong { color: var(--color-negative); }
 .chat-info svg { flex-shrink: 0; margin-top: 2px; }
 .chat-info.is-limit { color: #8a5a00; }
+
+/* Branch picker: "only" shortcut and current mode */
+.askai__compare-row { display: flex; align-items: center; gap: 4px; }
+.askai__compare-row .askai__compare-option { flex: 1; }
+.askai__compare-only {
+  padding: 2px 8px; border: 0; border-radius: 999px; background: transparent;
+  color: #4b3bb0; font-size: 11px; font-weight: 600; opacity: 0.55; transition: opacity 0.15s ease;
+}
+.askai__compare-row:hover .askai__compare-only, .askai__compare-only:focus-visible { opacity: 1; background: #f1eefc; }
+.askai__compare-divider { height: 1px; margin: 4px 0; background: var(--color-border); }
+.askai__compare-mode { margin: 6px 2px 0; color: var(--navy-700); font-size: 11px; }
